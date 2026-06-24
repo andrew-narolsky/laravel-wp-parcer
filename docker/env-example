@@ -1,0 +1,27 @@
+# Choose storage path on your machine. For all storage systems
+DATA_SAVE_PATH=../data
+PROJECT_NAME=netfixcms
+COMPOSE_PROJECT_NAME=netfixcms
+
+### WORKSPACE Container ################################################################################################
+
+WORKSPACE_PUID=1000
+WORKSPACE_PGID=1000
+
+### NGINX Container ####################################################################################################
+
+NGINX_CONF_DIR=./nginx/conf.d
+
+### MARIADB Container ##################################################################################################
+
+MARIADB_DATABASE=netfixcms
+MARIADB_USER=netfix
+MARIADB_PASSWORD=CKqYFiwpoSl7
+MARIADB_PORT=3306
+MARIADB_ROOT_PASSWORD=root
+
+############################
+# Miscellaneous
+############################
+
+COMPOSE_CONVERT_WINDOWS_PATHS=1

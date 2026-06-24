@@ -1,0 +1,46 @@
+server {
+    listen 80;
+    server_name EXAMPLE.com www.EXAMPLE.com mail.EXAMPLE.com;
+    return 301 https://EXAMPLE.com$request_uri;
+}
+
+server {
+    listen 443;
+    server_name www.EXAMPLE.com;
+
+    ssl_certificate /var/www/letsencrypt/fullchain.pem;
+    ssl_certificate_key /var/www/letsencrypt/privkey.pem;
+
+    return 301 $scheme://EXAMPLE.com$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name EXAMPLE.com;
+
+    access_log /var/log/nginx/access.log combined;
+
+    ssl_certificate /var/www/letsencrypt/fullchain.pem;
+    ssl_certificate_key /var/www/letsencrypt/privkey.pem;
+
+    include /etc/nginx/sites-available/defaults/general.conf;
+    include /etc/nginx/sites-available/defaults/ssl.conf;
+
+    # Закрываем сайт от чужих глаз (логин/пароль netfix)
+    auth_basic "Restricted Content";
+    auth_basic_user_file /var/www/.htpasswd;
+}
+
+server {
+  listen 127.0.0.1:8095;
+  server_name smtpauth.local;
+  access_log off;
+
+  root /var/www/public;
+
+  try_files $uri @app;
+
+  location @app {
+    proxy_pass https://mailman.writingassistance.me;
+  }
+}
