@@ -8,4 +8,10 @@
             <i class="mdi mdi-home menu-icon"></i>
         </a>
     </li>
+    <li class="nav-item @ifroute('admin.sites.*') active @endifroute">
+        <a class="nav-link" href="{{ route('admin.sites.index') }}">
+            <span class="menu-title">Sites</span>
+            <i class="mdi mdi-web menu-icon"></i>
+        </a>
+    </li>
 </ul>
