@@ -1,3 +1,42 @@
+/* Radio card buttons */
+.radio-card-group {
+    display: flex;
+    gap: .5rem;
+}
+.radio-card-group input[type="radio"] {
+    display: none;
+}
+.radio-card-group label {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .5rem 1.1rem;
+    border: 1px solid #ebedf2;
+    border-radius: 4px;
+    font-size: .8125rem;
+    font-family: "ubuntu-regular", sans-serif;
+    color: var(--bs-body-color);
+    cursor: pointer;
+    transition: border-color .15s, background .15s, color .15s;
+    user-select: none;
+}
+.radio-card-group label i {
+    font-size: 1rem;
+    opacity: .7;
+}
+.radio-card-group label:hover {
+    border-color: #b0b8c8;
+    background: #f8f9fa;
+}
+.radio-card-group input[type="radio"]:checked + label {
+    border-color: #007bff;
+    background: linear-gradient(to right, #667eea, #764ba2);
+    color: #fff;
+}
+.radio-card-group input[type="radio"]:checked + label i {
+    opacity: 1;
+}
+
 /* Slim select */
 form .ss-main {
     padding: 0.84rem 1.375rem;

@@ -14,6 +14,7 @@
 
     <link rel="icon" type="image/png" href="{{ asset('/build/images/favicon.ico') }}"/>
     @yield('styles')
+    @stack('styles')
 </head>
 <body @class(['sidebar-icon-only' => request()->cookie('sidebar-status') === 'true'])>
     <div class="container-scroller">
@@ -53,6 +54,7 @@
 @vite(['resources/assets/admin/js/app.js'])
 
 @yield('js')
+@stack('js')
 
 </body>
 </html>

@@ -7,12 +7,15 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use SplFileObject;
 
 class ImportSitesFromCsvJob implements ShouldQueue
 {
     use Queueable;
 
     public int $timeout = 3600;
+
+    private const int CHUNK_SIZE = 500;
 
     public function __construct(public readonly string $filePath) {}
 
@@ -21,14 +24,15 @@ class ImportSitesFromCsvJob implements ShouldQueue
         $fullPath = Storage::path($this->filePath);
 
         if (!file_exists($fullPath)) {
-            Log::error("CSV import file not found: {$fullPath}");
+            Log::error("CSV import file not found: $fullPath");
             return;
         }
 
-        $file = new \SplFileObject($fullPath);
-        $file->setFlags(\SplFileObject::READ_CSV | \SplFileObject::SKIP_EMPTY | \SplFileObject::DROP_NEW_LINE);
+        $file = new SplFileObject($fullPath);
+        $file->setFlags(SplFileObject::READ_CSV | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE);
 
         $header = null;
+        $chunk = [];
         $imported = 0;
         $skipped = 0;
 
@@ -38,7 +42,7 @@ class ImportSitesFromCsvJob implements ShouldQueue
                 continue;
             }
 
-            if (count($row) !== count($header)) {
+            if (!is_array($row) || count($row) !== count($header)) {
                 continue;
             }
 
@@ -54,19 +58,24 @@ class ImportSitesFromCsvJob implements ShouldQueue
                 continue;
             }
 
-            $name = parse_url($url, PHP_URL_HOST) ?? $url;
-
-            Site::updateOrCreate(
-                ['url' => $url],
-                [
-                    'name'      => $name,
-                    'login'     => trim($data['username'] ?? ''),
-                    'password'  => trim($data['app_password'] ?? ''),
-                    'is_active' => true,
-                ]
-            );
+            $chunk[] = [
+                'name'      => parse_url($url, PHP_URL_HOST) ?? $url,
+                'url'       => $url,
+                'login'     => trim($data['username'] ?? ''),
+                'password'  => trim($data['app_password'] ?? ''),
+                'is_active' => true,
+            ];
 
             $imported++;
+
+            if (count($chunk) >= self::CHUNK_SIZE) {
+                Site::upsert($chunk, ['url'], ['name', 'login', 'password', 'is_active']);
+                $chunk = [];
+            }
+        }
+
+        if ($chunk) {
+            Site::upsert($chunk, ['url'], ['name', 'login', 'password', 'is_active']);
         }
 
         Storage::delete($this->filePath);

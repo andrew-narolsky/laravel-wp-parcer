@@ -60,16 +60,12 @@
 
                         <div class="mb-3">
                             <label class="form-label">Site <span class="text-danger">*</span></label>
-                            <select name="site_id" class="form-select @error('site_id') is-invalid @enderror">
-                                <option value="">— Select site —</option>
-                                @foreach($sites as $site)
-                                    <option value="{{ $site->id }}" @selected(old('site_id', $link->site_id) == $site->id)>
-                                        {{ $site->name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <x-searchable-select name="site_id"
+                                :options="$sites->pluck('name', 'id')"
+                                :selected="old('site_id', $link->site_id)"
+                                placeholder="— Search site —" />
                             @error('site_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -101,14 +97,22 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Type <span class="text-danger">*</span></label>
-                            <select name="type" class="form-select @error('type') is-invalid @enderror">
-                                <option value="">— Select type —</option>
-                                <option value="post" @selected(old('type', $link->type) === 'post')>In post</option>
-                                <option value="homepage" @selected(old('type', $link->type) === 'homepage')>Homepage</option>
-                            </select>
+                            <label class="form-label d-block">Type <span class="text-danger">*</span></label>
+                            <div class="radio-card-group">
+                                <input type="radio" name="type" id="type_post" value="post"
+                                       {{ old('type', $link->type) === 'post' ? 'checked' : '' }}>
+                                <label for="type_post">
+                                    <i class="mdi mdi-file-document-outline"></i> In post
+                                </label>
+
+                                <input type="radio" name="type" id="type_homepage" value="homepage"
+                                       {{ old('type', $link->type) === 'homepage' ? 'checked' : '' }}>
+                                <label for="type_homepage">
+                                    <i class="mdi mdi-home-outline"></i> Homepage
+                                </label>
+                            </div>
                             @error('type')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
                         </div>
 

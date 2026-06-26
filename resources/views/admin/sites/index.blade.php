@@ -108,6 +108,7 @@
                         </table>
                     </div>
                 </div>
+                {{ $sites->links('admin.partials.pagination') }}
             </div>
         </div>
     </div>
