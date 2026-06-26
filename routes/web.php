@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\LinkController;
 use App\Http\Controllers\Admin\SiteController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,4 +15,6 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
     Route::get('/', [DashboardController::class, 'index'])->name('admin');
 
     Route::resource('sites', SiteController::class)->names('admin.sites');
+    Route::resource('links', LinkController::class)->names('admin.links');
+    Route::post('links/{link}/publish', [LinkController::class, 'publish'])->name('admin.links.publish');
 });

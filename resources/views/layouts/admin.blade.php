@@ -13,6 +13,7 @@
     ])
 
     <link rel="icon" type="image/png" href="{{ asset('/build/images/favicon.ico') }}"/>
+    @yield('styles')
 </head>
 <body @class(['sidebar-icon-only' => request()->cookie('sidebar-status') === 'true'])>
     <div class="container-scroller">

@@ -14,4 +14,10 @@
             <i class="mdi mdi-web menu-icon"></i>
         </a>
     </li>
+    <li class="nav-item @ifroute('admin.links.*') active @endifroute">
+        <a class="nav-link" href="{{ route('admin.links.index') }}">
+            <span class="menu-title">Links</span>
+            <i class="mdi mdi-link menu-icon"></i>
+        </a>
+    </li>
 </ul>
