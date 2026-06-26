@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreSiteRequest;
 use App\Http\Requests\Admin\UpdateSiteRequest;
 use App\Jobs\CheckSiteConnectionJob;
+use App\Jobs\ImportSitesFromCsvJob;
 use App\Models\Site;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class SiteController extends Controller
 {
@@ -52,5 +54,19 @@ class SiteController extends Controller
         $site->delete();
 
         return redirect()->route('admin.sites.index')->with('success', 'Site deleted');
+    }
+
+    public function import(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:102400'],
+        ]);
+
+        $path = $request->file('csv_file')->store('imports');
+
+        dispatch(new ImportSitesFromCsvJob($path));
+
+        return redirect()->route('admin.sites.index')
+            ->with('success', 'CSV import started. Sites will appear shortly.');
     }
 }

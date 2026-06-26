@@ -13,7 +13,15 @@
                 </h3>
             </div>
 
-            <div class="col-auto ms-auto text-end mt-n1">
+            <div class="col-auto ms-auto text-end mt-n1 d-flex gap-2">
+                <form action="{{ route('admin.sites.import') }}" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-2">
+                    @csrf
+                    <input type="file" name="csv_file" id="csv_file" accept=".csv" class="d-none"
+                           onchange="this.form.submit()">
+                    <label for="csv_file" class="btn btn-outline-secondary mb-0" style="cursor:pointer">
+                        <i class="mdi mdi-upload me-1"></i> Import CSV
+                    </label>
+                </form>
                 <a href="{{ route('admin.sites.create') }}" class="btn btn-primary">Add Site</a>
             </div>
         </div>
