@@ -153,7 +153,7 @@
         });
 
         const initialText = {!! json_encode(old('text', $link->text)) !!};
-        quill.root.innerHTML = initialText;
+        quill.clipboard.dangerouslyPasteHTML(initialText);
         document.getElementById('text-input').value = initialText;
 
         quill.on('text-change', function () {

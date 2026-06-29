@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreLinkRequest;
 use App\Http\Requests\Admin\UpdateLinkRequest;
+use App\Jobs\ImportLinksFromCsvJob;
 use App\Jobs\PublishLinkJob;
 use App\Models\Link;
 use App\Models\Site;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class LinkController extends Controller
 {
@@ -60,5 +62,19 @@ class LinkController extends Controller
         dispatch(new PublishLinkJob($link));
 
         return redirect()->back()->with('success', 'Queued for publishing.');
+    }
+
+    public function import(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:102400'],
+        ]);
+
+        $path = $request->file('csv_file')->store('imports');
+
+        dispatch(new ImportLinksFromCsvJob($path));
+
+        return redirect()->route('admin.links.index')
+            ->with('success', 'CSV import started. Links will appear shortly.');
     }
 }
