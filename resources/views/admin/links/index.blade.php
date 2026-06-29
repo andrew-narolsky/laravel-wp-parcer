@@ -59,6 +59,7 @@
                                     <th>URL</th>
                                     <th>Anchor</th>
                                     <th>Type</th>
+                                    <th>Published URL</th>
                                     <th>Status</th>
                                     <th>Added</th>
                                     <th></th>
@@ -80,6 +81,15 @@
                                                 <span class="badge badge-info">In post</span>
                                             @else
                                                 <span class="badge badge-warning">Homepage</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($link->wp_url)
+                                                <a href="{{ $link->wp_url }}" target="_blank" class="text-truncate d-inline-block" style="max-width:200px">
+                                                    {{ $link->wp_url }}
+                                                </a>
+                                            @else
+                                                <span class="text-muted">—</span>
                                             @endif
                                         </td>
                                         <td>

@@ -21,14 +21,16 @@ class PublishLinkJob implements ShouldQueue
             'homepage' => $client->updateFrontPage($this->link->site, $this->link->text),
         };
 
+        $wpUrl = $result['link'] ?? $result['guid']['rendered'] ?? null;
+
         Log::info('PublishLinkJob done', [
             'link_id' => $this->link->id,
             'type'    => $this->link->type,
             'wp_id'   => $result['id'] ?? null,
-            'wp_link' => $result['link'] ?? $result['guid']['rendered'] ?? null,
+            'wp_link' => $wpUrl,
             'status'  => $result['status'] ?? null,
         ]);
 
-        $this->link->update(['is_active' => true]);
+        $this->link->update(['is_active' => true, 'wp_url' => $wpUrl]);
     }
 }
