@@ -21,6 +21,13 @@
                         <i class="mdi mdi-upload me-1"></i> Import CSV
                     </label>
                 </form>
+                <form action="{{ route('admin.links.analyze') }}" method="POST"
+                      onsubmit="return confirm('Run links analysis? A report will be sent to email.')">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-info">
+                        <i class="mdi mdi-magnify me-1"></i> Analyze
+                    </button>
+                </form>
                 <a href="{{ route('admin.links.create') }}" class="btn btn-primary">Add Link</a>
             </div>
         </div>

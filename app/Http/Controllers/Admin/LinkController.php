@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreLinkRequest;
 use App\Http\Requests\Admin\UpdateLinkRequest;
+use App\Jobs\AnalyzeLinksJob;
 use App\Jobs\ImportLinksFromCsvJob;
 use App\Jobs\PublishLinkJob;
 use App\Models\Link;
@@ -62,6 +63,13 @@ class LinkController extends Controller
         dispatch(new PublishLinkJob($link));
 
         return redirect()->back()->with('success', 'Queued for publishing.');
+    }
+
+    public function analyze(): RedirectResponse
+    {
+        dispatch(new AnalyzeLinksJob());
+
+        return redirect()->back()->with('success', 'Analysis started. Report will be sent to ' . env('REPORT_EMAIL') . '.');
     }
 
     public function import(Request $request): RedirectResponse
