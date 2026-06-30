@@ -6,7 +6,7 @@ use App\Contracts\LinkCheckerContract;
 use App\DTO\LinkCheckResult;
 use App\Models\Link;
 use App\Models\Site;
-use Illuminate\Support\Facades\Http;
+use App\Services\WordPressHttpClient;
 
 class PostLinkChecker implements LinkCheckerContract
 {
@@ -17,7 +17,7 @@ class PostLinkChecker implements LinkCheckerContract
         }
 
         $slug = basename(parse_url($link->wp_url, PHP_URL_PATH));
-        $http = Http::withBasicAuth($site->login, $site->password)->timeout(15);
+        $http = WordPressHttpClient::for($site);
 
         $post = null;
         foreach (['posts', 'pages'] as $type) {

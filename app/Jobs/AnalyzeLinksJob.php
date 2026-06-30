@@ -20,8 +20,9 @@ class AnalyzeLinksJob implements ShouldQueue
     {
         $results = Link::with('site')
             ->where('is_active', true)
-            ->get()
-            ->map(fn(Link $link) => $analyzer->analyze($link));
+            ->lazy(100)
+            ->map(fn(Link $link) => $analyzer->analyze($link))
+            ->collect();
 
         $total   = $results->count();
         $working = $results->filter->isWorking()->count();
@@ -29,6 +30,6 @@ class AnalyzeLinksJob implements ShouldQueue
 
         Log::info('AnalyzeLinksJob complete', compact('total', 'working', 'broken'));
 
-        Mail::to(env('REPORT_EMAIL'))->send(new LinksReportMail($results));
+        Mail::to(config('services.report_email'))->send(new LinksReportMail($results));
     }
 }

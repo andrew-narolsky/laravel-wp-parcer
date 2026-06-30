@@ -4,11 +4,12 @@ namespace App\Jobs;
 
 use App\Models\Link;
 use App\Models\Site;
+use App\Services\CsvReader;
+use App\Values\LinkedContent;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use SplFileObject;
 
 class ImportLinksFromCsvJob implements ShouldQueue
 {
@@ -22,37 +23,13 @@ class ImportLinksFromCsvJob implements ShouldQueue
 
     public function handle(): void
     {
-        $fullPath = Storage::path($this->filePath);
-
-        if (!file_exists($fullPath)) {
-            Log::error("Links CSV import file not found: $fullPath");
-            return;
-        }
-
-        // Preload all sites into memory for fast lookup by URL
         $sites = Site::pluck('id', 'url')->toArray();
 
-        $file = new SplFileObject($fullPath);
-        $file->setFlags(SplFileObject::READ_CSV | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE);
-
-        $header = null;
+        $now   = now()->toDateTimeString();
         $chunk = [];
-        $imported = 0;
-        $skipped = 0;
-        $now = now()->toDateTimeString();
+        $imported = $skipped = 0;
 
-        foreach ($file as $row) {
-            if ($header === null) {
-                $header = array_map('trim', $row);
-                continue;
-            }
-
-            if (!is_array($row) || count($row) !== count($header)) {
-                continue;
-            }
-
-            $data = array_combine($header, $row);
-
+        foreach (CsvReader::rows($this->filePath) as $data) {
             $referringUrl = rtrim(trim($data['Referring page URL'] ?? ''), '/');
             $destination  = strtolower(trim($data['Destination'] ?? ''));
             $targetUrl    = trim($data['Target URL'] ?? '');
@@ -67,28 +44,17 @@ class ImportLinksFromCsvJob implements ShouldQueue
             $siteId = $sites[$referringUrl] ?? null;
             if (!$siteId) {
                 $skipped++;
-                Log::debug("Links import: site not found for URL: $referringUrl");
+                Log::debug("Links import: site not found for URL: {$referringUrl}");
                 continue;
             }
-
-            $type = $destination === 'home' ? 'homepage' : 'post';
-
-            $linked = preg_replace(
-                '/' . preg_quote($anchor, '/') . '/',
-                '<a href="' . $targetUrl . '">' . $anchor . '</a>',
-                $content,
-                1
-            );
-
-            $linkedContent = '<p>' . $linked . '</p>';
 
             $chunk[] = [
                 'site_id'    => $siteId,
                 'title'      => $anchor,
                 'url'        => $targetUrl,
                 'anchor'     => $anchor,
-                'text'       => $linkedContent,
-                'type'       => $type,
+                'text'       => LinkedContent::build($content, $anchor, $targetUrl),
+                'type'       => $destination === 'home' ? 'homepage' : 'post',
                 'is_active'  => false,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -116,6 +82,6 @@ class ImportLinksFromCsvJob implements ShouldQueue
                 $queued++;
             });
 
-        Log::info("Links CSV import complete: $imported imported, $skipped skipped, $queued queued for publishing");
+        Log::info("Links CSV import complete: {$imported} imported, {$skipped} skipped, {$queued} queued for publishing");
     }
 }

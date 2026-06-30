@@ -18,7 +18,7 @@ class LinkController extends Controller
 {
     public function index(): View
     {
-        $links = Link::with('site')->latest()->get();
+        $links = Link::with('site')->latest()->paginate(50);
 
         return view('admin.links.index', compact('links'));
     }
@@ -69,7 +69,7 @@ class LinkController extends Controller
     {
         dispatch(new AnalyzeLinksJob());
 
-        return redirect()->back()->with('success', 'Analysis started. Report will be sent to ' . env('REPORT_EMAIL') . '.');
+        return redirect()->back()->with('success', 'Analysis started. Report will be sent to ' . config('services.report_email') . '.');
     }
 
     public function import(Request $request): RedirectResponse

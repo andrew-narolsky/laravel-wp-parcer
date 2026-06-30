@@ -12,21 +12,15 @@ class LinksReportMail extends Mailable
 {
     use Queueable;
 
-    public int $total;
-    public int $working;
-    public int $broken;
-
     /** @param Collection<\App\DTO\LinkCheckResult> $results */
-    public function __construct(public readonly Collection $results)
-    {
-        $this->total   = $results->count();
-        $this->working = $results->filter->isWorking()->count();
-        $this->broken  = $results->reject->isWorking()->count();
-    }
+    public function __construct(public readonly Collection $results) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: "Links Analysis Report — {$this->broken} broken of {$this->total}");
+        $broken = $this->results->reject->isWorking()->count();
+        $total  = $this->results->count();
+
+        return new Envelope(subject: "Links Analysis Report — {$broken} broken of {$total}");
     }
 
     public function content(): Content

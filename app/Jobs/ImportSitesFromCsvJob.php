@@ -3,11 +3,11 @@
 namespace App\Jobs;
 
 use App\Models\Site;
+use App\Services\CsvReader;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use SplFileObject;
 
 class ImportSitesFromCsvJob implements ShouldQueue
 {
@@ -21,33 +21,10 @@ class ImportSitesFromCsvJob implements ShouldQueue
 
     public function handle(): void
     {
-        $fullPath = Storage::path($this->filePath);
-
-        if (!file_exists($fullPath)) {
-            Log::error("CSV import file not found: $fullPath");
-            return;
-        }
-
-        $file = new SplFileObject($fullPath);
-        $file->setFlags(SplFileObject::READ_CSV | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE);
-
-        $header = null;
         $chunk = [];
-        $imported = 0;
-        $skipped = 0;
+        $imported = $skipped = 0;
 
-        foreach ($file as $row) {
-            if ($header === null) {
-                $header = array_map('trim', $row);
-                continue;
-            }
-
-            if (!is_array($row) || count($row) !== count($header)) {
-                continue;
-            }
-
-            $data = array_combine($header, $row);
-
+        foreach (CsvReader::rows($this->filePath) as $data) {
             if (!empty($data['wp_old_version'])) {
                 $skipped++;
                 continue;
@@ -80,6 +57,6 @@ class ImportSitesFromCsvJob implements ShouldQueue
 
         Storage::delete($this->filePath);
 
-        Log::info("CSV import complete: $imported imported, $skipped skipped (wp_old_version set)");
+        Log::info("CSV import complete: {$imported} imported, {$skipped} skipped (wp_old_version set)");
     }
 }

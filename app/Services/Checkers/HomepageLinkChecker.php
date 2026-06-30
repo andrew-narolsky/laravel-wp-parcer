@@ -6,13 +6,13 @@ use App\Contracts\LinkCheckerContract;
 use App\DTO\LinkCheckResult;
 use App\Models\Link;
 use App\Models\Site;
-use Illuminate\Support\Facades\Http;
+use App\Services\WordPressHttpClient;
 
 class HomepageLinkChecker implements LinkCheckerContract
 {
     public function check(Site $site, Link $link): LinkCheckResult
     {
-        $http = Http::withBasicAuth($site->login, $site->password)->timeout(15);
+        $http = WordPressHttpClient::for($site);
 
         $settings = $http->get("{$site->url}/wp-json/wp/v2/settings");
         if (!$settings->successful()) {

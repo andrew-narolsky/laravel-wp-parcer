@@ -22,6 +22,13 @@
 </head>
 <body>
 
+@php
+    $total   = $results->count();
+    $working = $results->filter->isWorking()->count();
+    $broken  = $results->reject->isWorking()->count();
+    $brokenResults = $results->reject->isWorking();
+@endphp
+
 <h2>Links Analysis Report</h2>
 <p style="color:#666">Generated automatically. Analyzed all published links.</p>
 
@@ -55,7 +62,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($results->reject->isWorking() as $result)
+            @foreach($brokenResults as $result)
                 <tr>
                     <td>{{ $result->link->id }}</td>
                     <td>{{ $result->link->site->name }}</td>
