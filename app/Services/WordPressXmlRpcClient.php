@@ -19,10 +19,13 @@ class WordPressXmlRpcClient
             throw new RuntimeException("HTTP {$response->status()}");
         }
 
+        $useInternalErrors = libxml_use_internal_errors(true);
         $xml = simplexml_load_string($response->body());
+        libxml_clear_errors();
+        libxml_use_internal_errors($useInternalErrors);
 
         if ($xml === false) {
-            throw new RuntimeException('Invalid XML-RPC response');
+            throw new RuntimeException('Invalid XML-RPC response (non-XML body received)');
         }
 
         if (isset($xml->fault)) {
