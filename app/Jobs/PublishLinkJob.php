@@ -13,6 +13,8 @@ class PublishLinkJob implements ShouldQueue
 {
     use Queueable;
 
+    public int $tries = 1;
+
     public function __construct(public readonly Link $link) {}
 
     public function handle(LinkPublisher $publisher): void
