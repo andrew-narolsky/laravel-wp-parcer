@@ -33,6 +33,10 @@ class WordPressXmlRpcClient
             throw new RuntimeException($fault['faultString'] ?? 'XML-RPC call failed');
         }
 
+        if (!isset($xml->params->param->value)) {
+            throw new RuntimeException('Invalid XML-RPC response (missing params)');
+        }
+
         return self::decodeValue($xml->params->param->value);
     }
 
