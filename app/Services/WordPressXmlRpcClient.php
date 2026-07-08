@@ -52,6 +52,7 @@ class WordPressXmlRpcClient
     private static function encodeValue(mixed $value): string
     {
         return match (true) {
+            $value instanceof XmlRpcBase64Value => '<value><base64>' . base64_encode($value->raw) . '</base64></value>',
             is_int($value) => "<value><int>{$value}</int></value>",
             is_bool($value) => '<value><boolean>' . ($value ? 1 : 0) . '</boolean></value>',
             is_array($value) && array_is_list($value) => '<value><array><data>'
@@ -82,6 +83,7 @@ class WordPressXmlRpcClient
             'int', 'i4' => (int) $node,
             'double' => (float) $node,
             'boolean' => ((string) $node) === '1',
+            'base64' => base64_decode((string) $node),
             'struct' => self::decodeStruct($node),
             'array' => self::decodeArray($node),
             default => (string) $node,

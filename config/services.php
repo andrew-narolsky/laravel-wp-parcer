@@ -37,4 +37,6 @@ return [
 
     'report_email' => env('REPORT_EMAIL'),
 
+    'link_images_path' => env('LINK_IMAGES_PATH', base_path('temp')),
+
 ];

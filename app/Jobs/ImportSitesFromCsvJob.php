@@ -75,6 +75,7 @@ class ImportSitesFromCsvJob implements ShouldQueue
             [
                 'title' => $title,
                 'text'  => $description,
+                'image' => trim($data['image'] ?? '') ?: null,
                 'type'  => 'post',
             ]
         );
