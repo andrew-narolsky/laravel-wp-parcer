@@ -67,7 +67,7 @@
                             <tbody>
                                 @forelse($links as $link)
                                     <tr>
-                                        <td>{{ $link->id }}</td>
+                                        <td>{{ $links->firstItem() + $loop->index }}</td>
                                         <td>{{ $link->site->name }}</td>
                                         <td>
                                             <a href="{{ $link->url }}" target="_blank">
@@ -121,10 +121,8 @@
                             </tbody>
                         </table>
                     </div>
-                    @if($links->hasPages())
-                        <div class="mt-3">{{ $links->links() }}</div>
-                    @endif
                 </div>
+                {{ $links->links('admin.partials.pagination') }}
             </div>
         </div>
     </div>

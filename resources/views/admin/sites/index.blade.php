@@ -67,7 +67,7 @@
                             <tbody>
                                 @forelse($sites as $site)
                                     <tr>
-                                        <td>{{ $site->id }}</td>
+                                        <td>{{ $sites->firstItem() + $loop->index }}</td>
                                         <td>{{ $site->name }}</td>
                                         <td>
                                             <a href="{{ $site->url }}" target="_blank">
