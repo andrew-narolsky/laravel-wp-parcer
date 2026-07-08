@@ -7,6 +7,7 @@ use App\Services\LinkPublisher;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class PublishLinkJob implements ShouldQueue
 {
@@ -35,6 +36,11 @@ class PublishLinkJob implements ShouldQueue
             'status'  => $result['status'] ?? null,
         ]);
 
-        $link->update(['is_active' => true, 'wp_url' => $wpUrl]);
+        $link->update(['status' => 'published', 'wp_url' => $wpUrl, 'failed_reason' => null]);
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        $this->link->update(['status' => 'failed', 'failed_reason' => $exception->getMessage()]);
     }
 }

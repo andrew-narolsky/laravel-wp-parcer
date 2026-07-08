@@ -19,7 +19,7 @@ class AnalyzeLinksJob implements ShouldQueue
     public function handle(LinkAnalyzer $analyzer): void
     {
         $results = Link::with('site')
-            ->where('is_active', true)
+            ->where('status', 'published')
             ->lazy(100)
             ->map(fn(Link $link) => $analyzer->analyze($link))
             ->collect();

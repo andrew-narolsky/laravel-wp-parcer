@@ -92,8 +92,10 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @if($link->is_active)
+                                            @if($link->status === 'published')
                                                 <span class="badge badge-success">Published</span>
+                                            @elseif($link->status === 'failed')
+                                                <span class="badge badge-danger" title="{{ $link->failed_reason }}">Failed</span>
                                             @else
                                                 <span class="badge badge-secondary">Pending</span>
                                             @endif
