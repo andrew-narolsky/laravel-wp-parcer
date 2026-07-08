@@ -21,6 +21,8 @@ class UpdateLinkRequest extends FormRequest
             'anchor'  => 'required|string|max:255',
             'text'    => 'required|string',
             'type'    => 'required|in:post,homepage',
+            'status'        => 'required|in:pending,published,failed',
+            'failed_reason' => 'nullable|string',
         ];
     }
 }

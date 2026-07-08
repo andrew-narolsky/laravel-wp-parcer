@@ -116,6 +116,41 @@
                             @enderror
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label d-block">Status <span class="text-danger">*</span></label>
+                            <div class="radio-card-group">
+                                <input type="radio" name="status" id="status_pending" value="pending"
+                                       {{ old('status', $link->status) === 'pending' ? 'checked' : '' }}>
+                                <label for="status_pending">
+                                    <i class="mdi mdi-clock-outline"></i> Pending
+                                </label>
+
+                                <input type="radio" name="status" id="status_published" value="published"
+                                       {{ old('status', $link->status) === 'published' ? 'checked' : '' }}>
+                                <label for="status_published">
+                                    <i class="mdi mdi-check-circle-outline"></i> Published
+                                </label>
+
+                                <input type="radio" name="status" id="status_failed" value="failed"
+                                       {{ old('status', $link->status) === 'failed' ? 'checked' : '' }}>
+                                <label for="status_failed">
+                                    <i class="mdi mdi-alert-circle-outline"></i> Failed
+                                </label>
+                            </div>
+                            @error('status')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Failed reason</label>
+                            <textarea name="failed_reason" class="form-control @error('failed_reason') is-invalid @enderror"
+                                      rows="2" placeholder="Error message from the last failed publish attempt">{{ old('failed_reason', $link->failed_reason) }}</textarea>
+                            @error('failed_reason')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <div class="mb-4">
                             <label class="form-label">Article text <span class="text-danger">*</span></label>
                             <input type="hidden" name="text" id="text-input">
