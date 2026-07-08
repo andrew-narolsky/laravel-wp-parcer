@@ -5,24 +5,35 @@ namespace App\Services\Publishers;
 use App\Contracts\LinkPublisherContract;
 use App\Models\Link;
 use App\Models\Site;
-use App\Services\WordPressHttpClient;
-use RuntimeException;
+use App\Services\WordPressXmlRpcClient;
 
 class PostPublisher implements LinkPublisherContract
 {
     public function publish(Site $site, Link $link): array
     {
-        $response = WordPressHttpClient::for($site, 30)
-            ->post("{$site->url}/wp-json/wp/v2/posts", [
-                'title'   => $link->title,
-                'content' => $link->text,
-                'status'  => 'publish',
-            ]);
+        $postId = WordPressXmlRpcClient::call($site, 'wp.newPost', [
+            0,
+            $site->login,
+            $site->password,
+            [
+                'post_title'   => $link->title,
+                'post_content' => $link->text,
+                'post_status'  => 'publish',
+            ],
+        ]);
 
-        if (!$response->successful()) {
-            throw new RuntimeException("HTTP {$response->status()}: " . $response->json('message', ''));
-        }
+        $post = WordPressXmlRpcClient::call($site, 'wp.getPost', [
+            0,
+            $site->login,
+            $site->password,
+            $postId,
+            ['link', 'post_status'],
+        ]);
 
-        return $response->json();
+        return [
+            'id'     => $postId,
+            'link'   => $post['link'] ?? null,
+            'status' => $post['post_status'] ?? null,
+        ];
     }
 }

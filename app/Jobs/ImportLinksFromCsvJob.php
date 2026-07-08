@@ -5,7 +5,6 @@ namespace App\Jobs;
 use App\Models\Link;
 use App\Models\Site;
 use App\Services\CsvReader;
-use App\Values\LinkedContent;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -53,7 +52,7 @@ class ImportLinksFromCsvJob implements ShouldQueue
                 'title'      => $anchor,
                 'url'        => $targetUrl,
                 'anchor'     => $anchor,
-                'text'       => LinkedContent::build($content, $anchor, $targetUrl),
+                'text'       => $content,
                 'type'       => $destination === 'home' ? 'homepage' : 'post',
                 'is_active'  => false,
                 'created_at' => $now,

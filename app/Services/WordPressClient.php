@@ -3,19 +3,13 @@
 namespace App\Services;
 
 use App\Models\Site;
-use RuntimeException;
 
 class WordPressClient
 {
     public function testConnection(Site $site): array
     {
-        $response = WordPressHttpClient::for($site)
-            ->get("{$site->url}/wp-json/wp/v2/users/me");
+        $blogs = WordPressXmlRpcClient::call($site, 'wp.getUsersBlogs', [$site->login, $site->password]);
 
-        if (!$response->successful()) {
-            throw new RuntimeException("HTTP {$response->status()}");
-        }
-
-        return $response->json();
+        return ['success' => true, 'blogs' => $blogs];
     }
 }
