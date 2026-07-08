@@ -9,6 +9,9 @@ services:
                 - USER_ID=${WORKSPACE_PUID}
                 - GROUP_ID=${WORKSPACE_PGID}
         restart: unless-stopped
+        depends_on:
+            mariadb:
+                condition: service_healthy
         volumes:
             - ../:/var/www:cached
             - ./workspace/laravel.ini:/usr/local/etc/php/conf.d/laravel.ini
@@ -60,6 +63,12 @@ services:
         - MYSQL_USER=${MARIADB_USER}
         - MYSQL_PASSWORD=${MARIADB_PASSWORD}
         - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+      healthcheck:
+        test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+        interval: 5s
+        timeout: 5s
+        retries: 10
+        start_period: 30s
       networks:
         - app-network
 
