@@ -11,6 +11,7 @@ use App\Models\Link;
 use App\Models\Site;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LinkController extends Controller
 {
@@ -68,5 +69,34 @@ class LinkController extends Controller
         dispatch(new AnalyzeLinksJob());
 
         return redirect()->back()->with('success', 'Analysis started. Report will be sent to ' . config('services.report_email') . '.');
+    }
+
+    public function export(): StreamedResponse
+    {
+        $filename = 'links-' . now()->format('Y-m-d-His') . '.csv';
+
+        return response()->streamDownload(function () {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, ['id', 'site', 'title', 'url', 'wp_url', 'anchor', 'text', 'image', 'type', 'status', 'failed_reason']);
+
+            Link::with('site')->orderBy('id')->lazy(500)->each(function (Link $link) use ($handle) {
+                fputcsv($handle, [
+                    $link->id,
+                    $link->site->name ?? '',
+                    $link->title,
+                    $link->url,
+                    $link->wp_url,
+                    $link->anchor,
+                    $link->text,
+                    $link->image,
+                    $link->type,
+                    $link->status,
+                    $link->failed_reason,
+                ]);
+            });
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv']);
     }
 }
