@@ -13,14 +13,6 @@
                 </h3>
             </div>
             <div class="col-auto ms-auto text-end mt-n1 d-flex gap-2">
-                <form action="{{ route('admin.links.import') }}" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-2">
-                    @csrf
-                    <input type="file" name="csv_file" id="links_csv_file" accept=".csv" class="d-none"
-                           onchange="this.form.submit()">
-                    <label for="links_csv_file" class="btn btn-outline-secondary mb-0" style="cursor:pointer">
-                        <i class="mdi mdi-upload me-1"></i> Import CSV
-                    </label>
-                </form>
                 <form action="{{ route('admin.links.analyze') }}" method="POST"
                       onsubmit="return confirm('Run links analysis? A report will be sent to email.')">
                     @csrf

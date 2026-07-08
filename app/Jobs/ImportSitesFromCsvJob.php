@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Link;
 use App\Models\Site;
 use App\Services\CsvReader;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -15,48 +16,69 @@ class ImportSitesFromCsvJob implements ShouldQueue
 
     public int $timeout = 3600;
 
-    private const int CHUNK_SIZE = 500;
-
     public function __construct(public readonly string $filePath) {}
 
     public function handle(): void
     {
-        $chunk = [];
         $imported = $skipped = 0;
 
         foreach (CsvReader::rows($this->filePath) as $data) {
-            if (!empty($data['wp_old_version'])) {
+            $url      = rtrim(trim($data['site'] ?? ''), '/');
+            $login    = trim($data['login'] ?? '');
+            $password = trim($data['password'] ?? '');
+
+            if (empty($url) || empty($login) || empty($password)) {
                 $skipped++;
                 continue;
             }
 
-            $url = rtrim(trim($data['url'] ?? ''), '/');
-            if (empty($url)) {
-                continue;
-            }
+            $site = Site::firstOrCreate(
+                ['url' => $url],
+                [
+                    'name'      => parse_url($url, PHP_URL_HOST) ?? $url,
+                    'login'     => $login,
+                    'password'  => $password,
+                    'is_active' => true,
+                ]
+            );
 
-            $chunk[] = [
-                'name'      => parse_url($url, PHP_URL_HOST) ?? $url,
-                'url'       => $url,
-                'login'     => trim($data['username'] ?? ''),
-                'password'  => trim($data['app_password'] ?? ''),
-                'is_active' => true,
-            ];
+            $this->createAndPublishLink($site, $data);
 
             $imported++;
-
-            if (count($chunk) >= self::CHUNK_SIZE) {
-                Site::upsert($chunk, ['url'], ['name', 'login', 'password', 'is_active']);
-                $chunk = [];
-            }
-        }
-
-        if ($chunk) {
-            Site::upsert($chunk, ['url'], ['name', 'login', 'password', 'is_active']);
         }
 
         Storage::delete($this->filePath);
 
-        Log::info("CSV import complete: {$imported} imported, {$skipped} skipped (wp_old_version set)");
+        Log::info("Sites CSV import complete: {$imported} imported, {$skipped} skipped");
+    }
+
+    private function createAndPublishLink(Site $site, array $data): void
+    {
+        $title       = trim($data['title'] ?? '');
+        $description = trim($data['description'] ?? '');
+
+        if (empty($title) || empty($description)) {
+            return;
+        }
+
+        if (!preg_match('/<a\s[^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/is', $description, $matches)) {
+            Log::warning("Sites CSV import: no link found in description for site {$site->url}");
+            return;
+        }
+
+        $link = Link::updateOrCreate(
+            [
+                'site_id' => $site->id,
+                'url'     => $matches[1],
+                'anchor'  => trim(strip_tags($matches[2])),
+            ],
+            [
+                'title' => $title,
+                'text'  => $description,
+                'type'  => 'post',
+            ]
+        );
+
+        dispatch(new PublishLinkJob($link));
     }
 }

@@ -16,7 +16,6 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
 
     Route::post('sites/import', [SiteController::class, 'import'])->name('admin.sites.import');
     Route::resource('sites', SiteController::class)->names('admin.sites');
-    Route::post('links/import', [LinkController::class, 'import'])->name('admin.links.import');
     Route::post('links/analyze', [LinkController::class, 'analyze'])->name('admin.links.analyze');
     Route::resource('links', LinkController::class)->names('admin.links');
     Route::post('links/{link}/publish', [LinkController::class, 'publish'])->name('admin.links.publish');
