@@ -55,11 +55,10 @@
                                 <tr>
                                     <th>#</th>
                                     <th>Site</th>
-                                    <th>URL</th>
-                                    <th>Anchor</th>
                                     <th>Type</th>
                                     <th>Published URL</th>
                                     <th>Status</th>
+                                    <th>Failed reason</th>
                                     <th>Added</th>
                                     <th></th>
                                 </tr>
@@ -69,12 +68,6 @@
                                     <tr>
                                         <td>{{ $links->firstItem() + $loop->index }}</td>
                                         <td>{{ $link->site->name }}</td>
-                                        <td>
-                                            <a href="{{ $link->url }}" target="_blank">
-                                                {{ Str::limit($link->url, 40) }}
-                                            </a>
-                                        </td>
-                                        <td>{{ $link->anchor }}</td>
                                         <td>
                                             @if($link->type === 'post')
                                                 <span class="badge badge-info">In post</span>
@@ -95,9 +88,18 @@
                                             @if($link->status === 'published')
                                                 <span class="badge badge-success">Published</span>
                                             @elseif($link->status === 'failed')
-                                                <span class="badge badge-danger" title="{{ $link->failed_reason }}">Failed</span>
+                                                <span class="badge badge-danger">Failed</span>
                                             @else
                                                 <span class="badge badge-secondary">Pending</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($link->failed_reason)
+                                                <span class="text-danger text-truncate d-inline-block" style="max-width:220px" title="{{ $link->failed_reason }}">
+                                                    {{ $link->failed_reason }}
+                                                </span>
+                                            @else
+                                                <span class="text-muted">—</span>
                                             @endif
                                         </td>
                                         <td>{{ $link->created_at->format('d.m.Y') }}</td>
