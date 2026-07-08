@@ -62,15 +62,12 @@
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label">Password / Application Password <span class="text-danger">*</span></label>
+                            <label class="form-label">Password<span class="text-danger">*</span></label>
                             <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"
-                                   placeholder="xxxx xxxx xxxx xxxx xxxx xxxx">
+                                   placeholder="xxxxxxxx">
                             @error('password')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <div class="form-text">
-                                Use Application Password: WordPress → Profile → Application Passwords
-                            </div>
                         </div>
 
                         <button type="submit" class="btn btn-gradient-primary">

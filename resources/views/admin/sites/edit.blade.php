@@ -69,9 +69,6 @@
                             @error('password')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <div class="form-text">
-                                Use Application Password: WordPress → Profile → Application Passwords
-                            </div>
                         </div>
 
                         <button type="submit" class="btn btn-gradient-primary">
