@@ -62,6 +62,7 @@
                                     <th>Published URL</th>
                                     <th>Status</th>
                                     <th>Failed reason</th>
+                                    <th>Check</th>
                                     <th>Added</th>
                                     <th></th>
                                 </tr>
@@ -105,6 +106,17 @@
                                                 <span class="text-muted">—</span>
                                             @endif
                                         </td>
+                                        <td>
+                                            @if($link->check_status === 'alive')
+                                                <span class="badge badge-success" title="Checked {{ $link->checked_at?->format('d.m.Y H:i') }}">Alive</span>
+                                            @elseif($link->check_status === 'not_found')
+                                                <span class="badge badge-danger" title="{{ $link->check_error }} ({{ $link->checked_at?->format('d.m.Y H:i') }})">Not found</span>
+                                            @elseif($link->check_status === 'blocked')
+                                                <span class="badge badge-warning" title="{{ $link->check_error }} ({{ $link->checked_at?->format('d.m.Y H:i') }})">Blocked</span>
+                                            @else
+                                                <span class="badge badge-secondary">Unknown</span>
+                                            @endif
+                                        </td>
                                         <td>{{ $link->created_at->format('d.m.Y') }}</td>
                                         <td class="d-flex flex-row justify-content-end">
                                             <a href="{{ route('admin.links.edit', $link) }}" class="btn btn-inverse-info btn-icon me-2">
@@ -122,7 +134,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center text-muted py-4">No links yet</td>
+                                        <td colspan="9" class="text-center text-muted py-4">No links yet</td>
                                     </tr>
                                 @endforelse
                             </tbody>

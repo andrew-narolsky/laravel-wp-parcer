@@ -78,7 +78,7 @@ class LinkController extends Controller
         return response()->streamDownload(function () {
             $handle = fopen('php://output', 'w');
 
-            fputcsv($handle, ['id', 'site', 'title', 'url', 'wp_url', 'anchor', 'text', 'image', 'type', 'status', 'failed_reason']);
+            fputcsv($handle, ['id', 'site', 'title', 'url', 'wp_url', 'anchor', 'text', 'image', 'type', 'status', 'failed_reason', 'check_status', 'check_error', 'checked_at']);
 
             Link::with('site')->orderBy('id')->lazy(500)->each(function (Link $link) use ($handle) {
                 fputcsv($handle, [
@@ -93,6 +93,9 @@ class LinkController extends Controller
                     $link->type,
                     $link->status,
                     $link->failed_reason,
+                    $link->check_status,
+                    $link->check_error,
+                    $link->checked_at,
                 ]);
             });
 

@@ -2,34 +2,31 @@
 
 namespace App\Jobs;
 
-use App\Mail\LinksReportMail;
 use App\Models\Link;
-use App\Services\LinkAnalyzer;
+use Illuminate\Bus\Batch;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Bus;
 
 class AnalyzeLinksJob implements ShouldQueue
 {
     use Queueable;
 
-    public int $timeout = 3600;
-
-    public function handle(LinkAnalyzer $analyzer): void
+    public function handle(): void
     {
-        $results = Link::with('site')
-            ->where('status', 'published')
+        $jobs = Link::where('status', 'published')
+            ->select('id')
             ->lazy(100)
-            ->map(fn(Link $link) => $analyzer->analyze($link))
-            ->collect();
+            ->map(fn(Link $link) => new AnalyzeLinkJob($link->id));
 
-        $total   = $results->count();
-        $working = $results->filter->isWorking()->count();
-        $broken  = $results->reject->isWorking()->count();
+        if ($jobs->isEmpty()) {
+            dispatch(new SendLinksAnalysisReportJob());
+            return;
+        }
 
-        Log::info('AnalyzeLinksJob complete', compact('total', 'working', 'broken'));
-
-        Mail::to(config('services.report_email'))->send(new LinksReportMail($results));
+        Bus::batch($jobs->all())
+            ->name('links-analysis')
+            ->finally(fn(Batch $batch) => dispatch(new SendLinksAnalysisReportJob()))
+            ->dispatch();
     }
 }

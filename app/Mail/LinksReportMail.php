@@ -12,13 +12,13 @@ class LinksReportMail extends Mailable
 {
     use Queueable;
 
-    /** @param Collection<\App\DTO\LinkCheckResult> $results */
-    public function __construct(public readonly Collection $results) {}
+    /** @param Collection<\App\Models\Link> $links */
+    public function __construct(public readonly Collection $links) {}
 
     public function envelope(): Envelope
     {
-        $broken = $this->results->reject->isWorking()->count();
-        $total  = $this->results->count();
+        $broken = $this->links->where('check_status', 'not_found')->count();
+        $total  = $this->links->count();
 
         return new Envelope(subject: "Links Analysis Report — {$broken} broken of {$total}");
     }
@@ -26,10 +26,5 @@ class LinksReportMail extends Mailable
     public function content(): Content
     {
         return new Content(view: 'mail.links-report');
-    }
-
-    public function attachments(): array
-    {
-        return [];
     }
 }

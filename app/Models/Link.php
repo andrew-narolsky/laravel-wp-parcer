@@ -7,7 +7,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Link extends Model
 {
-    protected $fillable = ['site_id', 'title', 'url', 'wp_url', 'anchor', 'text', 'image', 'type', 'status', 'failed_reason'];
+    protected $fillable = [
+        'site_id', 'title', 'url', 'wp_url', 'anchor', 'text', 'image', 'type',
+        'status', 'failed_reason', 'check_status', 'check_error', 'checked_at',
+    ];
+
+    protected $casts = [
+        'checked_at' => 'datetime',
+    ];
 
     public function site(): BelongsTo
     {
