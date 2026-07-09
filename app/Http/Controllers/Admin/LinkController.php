@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreLinkRequest;
 use App\Http\Requests\Admin\UpdateLinkRequest;
+use App\Jobs\AnalyzeLinkJob;
 use App\Jobs\AnalyzeLinksJob;
 use App\Jobs\PublishLinkJob;
 use App\Models\Link;
@@ -59,9 +60,20 @@ class LinkController extends Controller
 
     public function publish(Link $link): RedirectResponse
     {
+        $link->update(['status' => 'pending', 'failed_reason' => null]);
+
         dispatch(new PublishLinkJob($link));
 
         return redirect()->back()->with('success', 'Queued for publishing.');
+    }
+
+    public function check(Link $link): RedirectResponse
+    {
+        $link->update(['check_status' => 'unknown', 'check_error' => null]);
+
+        dispatch(new AnalyzeLinkJob($link->id));
+
+        return redirect()->back()->with('success', 'Queued for status check.');
     }
 
     public function analyze(): RedirectResponse

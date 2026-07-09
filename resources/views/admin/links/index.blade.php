@@ -119,6 +119,18 @@
                                         </td>
                                         <td>{{ $link->created_at->format('d.m.Y') }}</td>
                                         <td class="d-flex flex-row justify-content-end">
+                                            <form action="{{ route('admin.links.check', $link) }}" method="POST" class="d-inline me-2">
+                                                @csrf
+                                                <button type="submit" class="btn btn-inverse-secondary btn-icon" title="Check status">
+                                                    <i class="mdi mdi-refresh"></i>
+                                                </button>
+                                            </form>
+                                            <form action="{{ route('admin.links.publish', $link) }}" method="POST" class="d-inline me-2">
+                                                @csrf
+                                                <button type="submit" class="btn btn-inverse-primary btn-icon" title="Publish to site">
+                                                    <i class="mdi mdi-publish"></i>
+                                                </button>
+                                            </form>
                                             <a href="{{ route('admin.links.edit', $link) }}" class="btn btn-inverse-info btn-icon me-2">
                                                 <i class="mdi mdi-pencil"></i>
                                             </a>

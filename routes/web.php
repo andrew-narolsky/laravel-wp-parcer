@@ -20,4 +20,5 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
     Route::get('links/export', [LinkController::class, 'export'])->name('admin.links.export');
     Route::resource('links', LinkController::class)->names('admin.links');
     Route::post('links/{link}/publish', [LinkController::class, 'publish'])->name('admin.links.publish');
+    Route::post('links/{link}/check', [LinkController::class, 'check'])->name('admin.links.check');
 });
