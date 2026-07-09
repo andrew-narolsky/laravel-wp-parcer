@@ -57,13 +57,13 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Site</th>
-                                    <th>Type</th>
-                                    <th>Published URL</th>
-                                    <th>Status</th>
-                                    <th>Failed reason</th>
-                                    <th>Check</th>
-                                    <th>Added</th>
+                                    @include('admin.partials.sortable-th', ['column' => 'site', 'label' => 'Site'])
+                                    @include('admin.partials.sortable-th', ['column' => 'type', 'label' => 'Type'])
+                                    @include('admin.partials.sortable-th', ['column' => 'wp_url', 'label' => 'Published URL'])
+                                    @include('admin.partials.sortable-th', ['column' => 'status', 'label' => 'Status'])
+                                    @include('admin.partials.sortable-th', ['column' => 'failed_reason', 'label' => 'Failed reason'])
+                                    @include('admin.partials.sortable-th', ['column' => 'check_status', 'label' => 'Check'])
+                                    @include('admin.partials.sortable-th', ['column' => 'created_at', 'label' => 'Added'])
                                     <th></th>
                                 </tr>
                             </thead>

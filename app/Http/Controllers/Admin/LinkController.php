@@ -12,15 +12,39 @@ use App\Models\Link;
 use App\Models\Site;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LinkController extends Controller
 {
-    public function index(): View
-    {
-        $links = Link::with('site')->latest()->paginate(50);
+    private const SORTABLE = [
+        'site'          => 'sites.name',
+        'type'          => 'links.type',
+        'wp_url'        => 'links.wp_url',
+        'status'        => 'links.status',
+        'failed_reason' => 'links.failed_reason',
+        'check_status'  => 'links.check_status',
+        'created_at'    => 'links.created_at',
+    ];
 
-        return view('admin.links.index', compact('links'));
+    public function index(Request $request): View
+    {
+        $sort      = $request->string('sort')->toString();
+        $direction = $request->string('direction')->toString() === 'asc' ? 'asc' : 'desc';
+
+        if (!array_key_exists($sort, self::SORTABLE)) {
+            $sort = 'created_at';
+        }
+
+        $links = Link::query()
+            ->leftJoin('sites', 'sites.id', '=', 'links.site_id')
+            ->select('links.*')
+            ->with('site')
+            ->orderBy(self::SORTABLE[$sort], $direction)
+            ->paginate(50)
+            ->withQueryString();
+
+        return view('admin.links.index', compact('links', 'sort', 'direction'));
     }
 
     public function create(): View
