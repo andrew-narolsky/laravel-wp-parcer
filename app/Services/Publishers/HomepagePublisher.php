@@ -81,6 +81,10 @@ class HomepagePublisher implements LinkPublisherContract
             return (int) $matches[1];
         }
 
+        if (preg_match('/<body[^>]*class=["\'][^"\']*\bhome\b/i', $html)) {
+            throw new RuntimeException('Front page shows a post listing, not a static page — nothing to append content to.');
+        }
+
         throw new RuntimeException('Could not determine front page ID from homepage markup.');
     }
 }
