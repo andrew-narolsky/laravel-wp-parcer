@@ -70,9 +70,9 @@ RUN pecl install imagick-3.7.0 || true \
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
 
 # --------------------------------------------------
-# Node.js 20
+# Node.js 22
 # --------------------------------------------------
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && npm install -g npm@latest svgo
 
