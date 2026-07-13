@@ -70,7 +70,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Title <span class="text-danger">*</span></label>
+                            <label class="form-label">Title</label>
                             <input type="text" name="title" class="form-control @error('title') is-invalid @enderror"
                                    value="{{ old('title', $link->title) }}" placeholder="Post title">
                             @error('title')
@@ -147,6 +147,47 @@
                             <textarea name="failed_reason" class="form-control @error('failed_reason') is-invalid @enderror"
                                       rows="2" placeholder="Error message from the last failed publish attempt">{{ old('failed_reason', $link->failed_reason) }}</textarea>
                             @error('failed_reason')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label d-block">Check status</label>
+                            <div class="radio-card-group">
+                                <input type="radio" name="check_status" id="check_status_unknown" value="unknown"
+                                       {{ old('check_status', $link->check_status) === 'unknown' ? 'checked' : '' }}>
+                                <label for="check_status_unknown">
+                                    <i class="mdi mdi-help-circle-outline"></i> Unknown
+                                </label>
+
+                                <input type="radio" name="check_status" id="check_status_alive" value="alive"
+                                       {{ old('check_status', $link->check_status) === 'alive' ? 'checked' : '' }}>
+                                <label for="check_status_alive">
+                                    <i class="mdi mdi-check-circle-outline"></i> Alive
+                                </label>
+
+                                <input type="radio" name="check_status" id="check_status_not_found" value="not_found"
+                                       {{ old('check_status', $link->check_status) === 'not_found' ? 'checked' : '' }}>
+                                <label for="check_status_not_found">
+                                    <i class="mdi mdi-alert-circle-outline"></i> Not found
+                                </label>
+
+                                <input type="radio" name="check_status" id="check_status_blocked" value="blocked"
+                                       {{ old('check_status', $link->check_status) === 'blocked' ? 'checked' : '' }}>
+                                <label for="check_status_blocked">
+                                    <i class="mdi mdi-block-helper"></i> Blocked
+                                </label>
+                            </div>
+                            @error('check_status')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Check error</label>
+                            <textarea name="check_error" class="form-control @error('check_error') is-invalid @enderror"
+                                      rows="2" placeholder="Error message from the last status check">{{ old('check_error', $link->check_error) }}</textarea>
+                            @error('check_error')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

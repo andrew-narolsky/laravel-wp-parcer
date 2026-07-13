@@ -16,7 +16,7 @@ class StoreLinkRequest extends FormRequest
     {
         return [
             'site_id' => ['required', Rule::exists('sites', 'id')->where('is_active', true)],
-            'title'   => 'required|string|max:255',
+            'title'   => 'nullable|string|max:255',
             'url'     => 'required|url|max:255',
             'anchor'  => 'required|string|max:255',
             'text'    => 'required|string',

@@ -61,7 +61,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Title <span class="text-danger">*</span></label>
+                            <label class="form-label">Title</label>
                             <input type="text" name="title" class="form-control @error('title') is-invalid @enderror"
                                    value="{{ old('title') }}" placeholder="Post title">
                             @error('title')
