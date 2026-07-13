@@ -19,7 +19,15 @@
                     <input type="file" name="csv_file" id="csv_file" accept=".csv" class="d-none"
                            onchange="this.form.submit()">
                     <label for="csv_file" class="btn btn-outline-secondary mb-0" style="cursor:pointer">
-                        <i class="mdi mdi-upload me-1"></i> Import CSV
+                        <i class="mdi mdi-upload me-1"></i> Import Posts
+                    </label>
+                </form>
+                <form action="{{ route('admin.sites.import_homepage') }}" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-2">
+                    @csrf
+                    <input type="file" name="csv_file" id="csv_file_homepage" accept=".csv" class="d-none"
+                           onchange="this.form.submit()">
+                    <label for="csv_file_homepage" class="btn btn-outline-secondary mb-0" style="cursor:pointer">
+                        <i class="mdi mdi-upload me-1"></i> Import Homepage
                     </label>
                 </form>
                 <a href="{{ route('admin.sites.create') }}" class="btn btn-primary">Add Site</a>

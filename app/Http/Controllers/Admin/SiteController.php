@@ -58,13 +58,23 @@ class SiteController extends Controller
 
     public function import(Request $request): RedirectResponse
     {
+        return $this->handleImport($request, 'post');
+    }
+
+    public function importHomepage(Request $request): RedirectResponse
+    {
+        return $this->handleImport($request, 'homepage');
+    }
+
+    private function handleImport(Request $request, string $linkType): RedirectResponse
+    {
         $request->validate([
             'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:102400'],
         ]);
 
         $path = $request->file('csv_file')->store('imports');
 
-        dispatch(new ImportSitesFromCsvJob($path));
+        dispatch(new ImportSitesFromCsvJob($path, $linkType));
 
         return redirect()->route('admin.sites.index')
             ->with('success', 'CSV import started. Sites will appear shortly.');

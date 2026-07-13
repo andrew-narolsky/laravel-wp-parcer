@@ -16,7 +16,7 @@ class ImportSitesFromCsvJob implements ShouldQueue
 
     public int $timeout = 3600;
 
-    public function __construct(public readonly string $filePath) {}
+    public function __construct(public readonly string $filePath, public readonly string $linkType = 'post') {}
 
     public function handle(): void
     {
@@ -57,7 +57,8 @@ class ImportSitesFromCsvJob implements ShouldQueue
         $title       = trim($data['title'] ?? '');
         $description = trim($data['description'] ?? '');
 
-        if (empty($title) || empty($description)) {
+        if (empty($description) || ($this->linkType === 'post' && empty($title))) {
+            Log::warning("Sites CSV import: missing title/description for site {$site->url}");
             return;
         }
 
@@ -76,7 +77,7 @@ class ImportSitesFromCsvJob implements ShouldQueue
                 'title' => $title,
                 'text'  => $description,
                 'image' => trim($data['image'] ?? '') ?: null,
-                'type'  => 'post',
+                'type'  => $this->linkType,
             ]
         );
 

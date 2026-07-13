@@ -5,40 +5,67 @@ namespace App\Services\Publishers;
 use App\Contracts\LinkPublisherContract;
 use App\Models\Link;
 use App\Models\Site;
-use App\Services\WordPressHttpClient;
+use App\Services\WordPressXmlRpcClient;
+use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 class HomepagePublisher implements LinkPublisherContract
 {
     public function publish(Site $site, Link $link): array
     {
-        $http = WordPressHttpClient::for($site, 30);
+        $postId = $this->findFrontPageId($site);
 
-        $settings = $http->get("{$site->url}/wp-json/wp/v2/settings");
-        if (!$settings->successful()) {
-            throw new RuntimeException("Cannot fetch settings: HTTP {$settings->status()}");
-        }
-
-        $pageId = $settings->json('page_on_front');
-        if (!$pageId) {
-            throw new RuntimeException("Front page is not set to a static page in WordPress settings.");
-        }
-
-        $page = $http->get("{$site->url}/wp-json/wp/v2/pages/{$pageId}");
-        if (!$page->successful()) {
-            throw new RuntimeException("Cannot fetch front page: HTTP {$page->status()}");
-        }
-
-        $existingContent = $page->json('content.raw') ?? $page->json('content.rendered', '');
-
-        $response = $http->post("{$site->url}/wp-json/wp/v2/pages/{$pageId}", [
-            'content' => $existingContent . "\n" . $link->text,
+        $post = WordPressXmlRpcClient::call($site, 'wp.getPost', [
+            0,
+            $site->login,
+            $site->password,
+            $postId,
+            ['post_content'],
         ]);
 
+        WordPressXmlRpcClient::call($site, 'wp.editPost', [
+            0,
+            $site->login,
+            $site->password,
+            $postId,
+            ['post_content' => ($post['post_content'] ?? '') . "\n" . $link->text],
+        ]);
+
+        $updated = WordPressXmlRpcClient::call($site, 'wp.getPost', [
+            0,
+            $site->login,
+            $site->password,
+            $postId,
+            ['link', 'post_status'],
+        ]);
+
+        return [
+            'id'     => $postId,
+            'link'   => $updated['link'] ?? null,
+            'status' => $updated['post_status'] ?? null,
+        ];
+    }
+
+    private function findFrontPageId(Site $site): int
+    {
+        $response = Http::timeout(30)->get($site->url);
+
         if (!$response->successful()) {
-            throw new RuntimeException("HTTP {$response->status()}: " . $response->json('message', ''));
+            throw new RuntimeException("Cannot fetch homepage: HTTP {$response->status()}");
         }
 
-        return $response->json();
+        $html = $response->body();
+
+        if (preg_match('/<link[^>]*rel=["\']shortlink["\'][^>]*>/i', $html, $tag)
+            && preg_match('/href=["\'][^"\']*[?&]p=(\d+)["\']/i', $tag[0], $matches)
+        ) {
+            return (int) $matches[1];
+        }
+
+        if (preg_match('/<body[^>]*class=["\'][^"\']*\b(?:page-id|postid)-(\d+)\b/i', $html, $matches)) {
+            return (int) $matches[1];
+        }
+
+        throw new RuntimeException('Could not determine front page ID from homepage markup.');
     }
 }

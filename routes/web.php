@@ -15,6 +15,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
     Route::get('/', [DashboardController::class, 'index'])->name('admin');
 
     Route::post('sites/import', [SiteController::class, 'import'])->name('admin.sites.import');
+    Route::post('sites/import-homepage', [SiteController::class, 'importHomepage'])->name('admin.sites.import_homepage');
     Route::resource('sites', SiteController::class)->names('admin.sites');
     Route::post('links/analyze', [LinkController::class, 'analyze'])->name('admin.links.analyze');
     Route::get('links/export', [LinkController::class, 'export'])->name('admin.links.export');
