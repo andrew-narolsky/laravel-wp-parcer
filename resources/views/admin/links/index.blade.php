@@ -36,6 +36,21 @@
         </nav>
     </div>
 
+    @php
+        $typeFilters = ['' => 'All', 'post' => 'Posts', 'homepage' => 'Homepage'];
+    @endphp
+    <div class="btn-group mb-3" role="group">
+        @foreach($typeFilters as $value => $label)
+            @php
+                $query = array_merge(request()->except(['type', 'page']), $value ? ['type' => $value] : []);
+            @endphp
+            <a href="{{ request()->url() . ($query ? '?' . http_build_query($query) : '') }}"
+               class="btn btn-sm {{ $type === $value ? 'btn-primary' : 'btn-outline-secondary' }}">
+                {{ $label }}
+            </a>
+        @endforeach
+    </div>
+
     @if(session('success'))
         <div class="alert alert-success" role="alert">
             {{ session('success') }}

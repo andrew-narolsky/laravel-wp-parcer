@@ -31,20 +31,26 @@ class LinkController extends Controller
     {
         $sort      = $request->string('sort')->toString();
         $direction = $request->string('direction')->toString() === 'asc' ? 'asc' : 'desc';
+        $type      = $request->string('type')->toString();
 
         if (!array_key_exists($sort, self::SORTABLE)) {
             $sort = 'created_at';
+        }
+
+        if (!in_array($type, ['post', 'homepage'], true)) {
+            $type = '';
         }
 
         $links = Link::query()
             ->leftJoin('sites', 'sites.id', '=', 'links.site_id')
             ->select('links.*')
             ->with('site')
+            ->when($type, fn ($query) => $query->where('links.type', $type))
             ->orderBy(self::SORTABLE[$sort], $direction)
             ->paginate(50)
             ->withQueryString();
 
-        return view('admin.links.index', compact('links', 'sort', 'direction'));
+        return view('admin.links.index', compact('links', 'sort', 'direction', 'type'));
     }
 
     public function create(): View
