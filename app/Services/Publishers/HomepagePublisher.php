@@ -23,12 +23,14 @@ class HomepagePublisher implements LinkPublisherContract
             ['post_content'],
         ]);
 
+        $newContent = $this->insertBeforeFirstLinkParagraph($post['post_content'] ?? '', $link->text);
+
         WordPressXmlRpcClient::call($site, 'wp.editPost', [
             0,
             $site->login,
             $site->password,
             $postId,
-            ['post_content' => ($post['post_content'] ?? '') . "\n" . $link->text],
+            ['post_content' => $newContent],
         ]);
 
         $updated = WordPressXmlRpcClient::call($site, 'wp.getPost', [
@@ -44,6 +46,19 @@ class HomepagePublisher implements LinkPublisherContract
             'link'   => $updated['link'] ?? null,
             'status' => $updated['post_status'] ?? null,
         ];
+    }
+
+    private function insertBeforeFirstLinkParagraph(string $content, string $fragment): string
+    {
+        preg_match_all('/<p\b[^>]*>.*?<\/p>/is', $content, $paragraphs, PREG_OFFSET_CAPTURE);
+
+        foreach ($paragraphs[0] as [$paragraph, $offset]) {
+            if (preg_match('/<a\s[^>]*>/i', $paragraph)) {
+                return substr($content, 0, $offset) . $fragment . "\n" . substr($content, $offset);
+            }
+        }
+
+        return $content . "\n" . $fragment;
     }
 
     private function findFrontPageId(Site $site): int
