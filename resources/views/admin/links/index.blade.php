@@ -30,6 +30,20 @@
                 <a href="{{ route('admin.links.export', request()->query()) }}" class="btn btn-outline-secondary">
                     <i class="mdi mdi-download me-1"></i> Export CSV
                 </a>
+                <form action="{{ route('admin.links.republish_posts') }}" method="POST"
+                      onsubmit="return confirm('Retry publishing all unpublished post links?')">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-warning">
+                        <i class="mdi mdi-refresh me-1"></i> Republish Posts
+                    </button>
+                </form>
+                <form action="{{ route('admin.links.republish_homepage') }}" method="POST"
+                      onsubmit="return confirm('Retry publishing all unpublished homepage links?')">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-warning">
+                        <i class="mdi mdi-refresh me-1"></i> Republish Homepage
+                    </button>
+                </form>
                 <a href="{{ route('admin.links.create') }}" class="btn btn-primary">Add Link</a>
             </div>
         </div>

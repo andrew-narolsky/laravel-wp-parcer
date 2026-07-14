@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateLinkRequest;
 use App\Jobs\AnalyzeLinkJob;
 use App\Jobs\AnalyzeLinksJob;
 use App\Jobs\PublishLinkJob;
+use App\Jobs\RepublishUnpublishedLinksJob;
 use App\Models\Link;
 use App\Models\Site;
 use Illuminate\Contracts\View\View;
@@ -111,6 +112,20 @@ class LinkController extends Controller
         dispatch(new AnalyzeLinksJob($type, $status, $checkStatus));
 
         return redirect()->back()->with('success', 'Analysis started. Report will be sent to ' . config('services.report_email') . '.');
+    }
+
+    public function republishPosts(): RedirectResponse
+    {
+        dispatch(new RepublishUnpublishedLinksJob('post'));
+
+        return redirect()->back()->with('success', 'Republishing unpublished post links.');
+    }
+
+    public function republishHomepage(): RedirectResponse
+    {
+        dispatch(new RepublishUnpublishedLinksJob('homepage'));
+
+        return redirect()->back()->with('success', 'Republishing unpublished homepage links.');
     }
 
     public function export(Request $request): StreamedResponse
