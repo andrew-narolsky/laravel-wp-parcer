@@ -43,6 +43,32 @@
         </nav>
     </div>
 
+    @php
+        $availabilityFilters = ['' => 'All', 'yes' => 'Yes', 'no' => 'No'];
+    @endphp
+    <div class="btn-group mb-3 me-2" role="group">
+        @foreach($availabilityFilters as $value => $label)
+            @php
+                $query = array_merge(request()->except(['posts_available', 'page']), $value ? ['posts_available' => $value] : []);
+            @endphp
+            <a href="{{ request()->url() . ($query ? '?' . http_build_query($query) : '') }}"
+               class="btn {{ $postsAvailable === $value ? 'btn-primary' : 'btn-outline-secondary' }}">
+                Posts: {{ $label }}
+            </a>
+        @endforeach
+    </div>
+    <div class="btn-group mb-3" role="group">
+        @foreach($availabilityFilters as $value => $label)
+            @php
+                $query = array_merge(request()->except(['homepage_available', 'page']), $value ? ['homepage_available' => $value] : []);
+            @endphp
+            <a href="{{ request()->url() . ($query ? '?' . http_build_query($query) : '') }}"
+               class="btn {{ $homepageAvailable === $value ? 'btn-primary' : 'btn-outline-secondary' }}">
+                Homepage: {{ $label }}
+            </a>
+        @endforeach
+    </div>
+
     @if(session('success'))
         <div class="alert alert-success" role="alert">
             {{ session('success') }}
@@ -64,13 +90,13 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Name</th>
-                                    <th>URL</th>
+                                    @include('admin.partials.sortable-th', ['column' => 'name', 'label' => 'Name'])
+                                    @include('admin.partials.sortable-th', ['column' => 'url', 'label' => 'URL'])
                                     <th>Login</th>
-                                    <th>Status</th>
-                                    <th>Posts</th>
-                                    <th>Homepage</th>
-                                    <th>Added</th>
+                                    @include('admin.partials.sortable-th', ['column' => 'is_active', 'label' => 'Status'])
+                                    @include('admin.partials.sortable-th', ['column' => 'posts_available', 'label' => 'Posts'])
+                                    @include('admin.partials.sortable-th', ['column' => 'homepage_available', 'label' => 'Homepage'])
+                                    @include('admin.partials.sortable-th', ['column' => 'created_at', 'label' => 'Added'])
                                     <th></th>
                                 </tr>
                             </thead>
