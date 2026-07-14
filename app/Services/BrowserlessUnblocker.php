@@ -20,12 +20,17 @@ class BrowserlessUnblocker
             return null;
         }
 
+        // 60000ms is the hard ceiling for the `timeout` param on the free Browserless plan —
+        // requesting more gets rejected outright with a 400. Slower pages than that simply can't
+        // be rendered on this plan; the client timeout below adds headroom for network/response
+        // overhead beyond Browserless's own render budget, not to extend that budget itself.
         $endpoint = rtrim(config('services.browserless.url'), '/') . '/unblock?' . http_build_query([
-            'token' => config('services.browserless.token'),
+            'token'   => config('services.browserless.token'),
+            'timeout' => 60000,
         ]);
 
         try {
-            $response = Http::timeout(60)->post($endpoint, [
+            $response = Http::timeout(75)->post($endpoint, [
                 'url'     => $url,
                 'content' => true,
             ]);
