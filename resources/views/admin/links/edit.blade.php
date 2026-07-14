@@ -80,8 +80,8 @@
 
                         <div class="mb-3">
                             <label class="form-label">Link URL <span class="text-danger">*</span></label>
-                            <input type="url" name="url" class="form-control @error('url') is-invalid @enderror"
-                                   value="{{ old('url', $link->url) }}" placeholder="https://example.com/page">
+                            <input type="text" name="url" class="form-control @error('url') is-invalid @enderror"
+                                   value="{{ old('url', $link->url) }}" placeholder="https://example.com/page or /">
                             @error('url')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
