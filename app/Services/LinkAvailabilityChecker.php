@@ -37,11 +37,53 @@ class LinkAvailabilityChecker
             );
         }
 
+        if ($this->looksLikeSpamCloaked($body)) {
+            return new LinkCheckResult(
+                $link,
+                pageExists: true,
+                hasLink: false,
+                blocked: true,
+                error: 'Page looks compromised with a hidden spam link farm (cloaking) — cannot reliably verify visibility',
+            );
+        }
+
         return new LinkCheckResult(
             link: $link,
             pageExists: true,
-            hasLink: str_contains($body, $link->url),
+            hasLink: $this->hasLink($body, $link),
         );
+    }
+
+    private function hasLink(string $body, Link $link): bool
+    {
+        if (!preg_match_all('/<a\s[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)<\/a>/is', $body, $matches, PREG_SET_ORDER)) {
+            return false;
+        }
+
+        foreach ($matches as $match) {
+            $href = trim($match[1]);
+            $text = trim(strip_tags($match[2]));
+
+            if ($href === $link->url && str_contains($text, $link->anchor)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function looksLikeSpamCloaked(string $body): bool
+    {
+        // Off-screen-positioned <a> tags are a common technique for hiding injected spam
+        // link farms from human visitors while keeping them crawlable — a handful can be
+        // a legitimate accessibility trick, but dozens/hundreds signal a compromised page.
+        preg_match_all(
+            '/<a\s[^>]*style=["\'][^"\']*position\s*:\s*absolute[^"\']*(?:top|left)\s*:\s*-\d{3,}px[^"\']*["\'][^>]*>/i',
+            $body,
+            $matches
+        );
+
+        return count($matches[0]) >= 5;
     }
 
     private function looksLikeBotChallenge(string $body): bool

@@ -39,7 +39,7 @@
     @php
         $typeFilters = ['' => 'All', 'post' => 'Posts', 'homepage' => 'Homepage'];
         $statusFilters = ['' => 'All', 'published' => 'Published'];
-        $checkFilters = ['' => 'All', 'alive' => 'Alive'];
+        $checkFilters = ['' => 'All', 'alive' => 'Alive', 'blocked' => 'Blocked'];
     @endphp
     <div class="btn-group mb-3 me-2" role="group">
         @foreach($typeFilters as $value => $label)
