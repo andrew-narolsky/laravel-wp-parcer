@@ -45,7 +45,7 @@
                 $query = array_merge(request()->except(['type', 'page']), $value ? ['type' => $value] : []);
             @endphp
             <a href="{{ request()->url() . ($query ? '?' . http_build_query($query) : '') }}"
-               class="btn btn-sm {{ $type === $value ? 'btn-primary' : 'btn-outline-secondary' }}">
+               class="btn {{ $type === $value ? 'btn-primary' : 'btn-outline-secondary' }}">
                 {{ $label }}
             </a>
         @endforeach
