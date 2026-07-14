@@ -88,6 +88,15 @@
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label d-block">Published URL</label>
+                            @if($link->wp_url)
+                                <a href="{{ $link->wp_url }}" target="_blank" rel="noopener">{{ $link->wp_url }}</a>
+                            @else
+                                <span class="text-muted">— not published yet —</span>
+                            @endif
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Anchor <span class="text-danger">*</span></label>
                             <input type="text" name="anchor" class="form-control @error('anchor') is-invalid @enderror"
                                    value="{{ old('anchor', $link->anchor) }}" placeholder="Click here">
