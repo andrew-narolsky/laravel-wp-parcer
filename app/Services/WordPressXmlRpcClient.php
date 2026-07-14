@@ -11,7 +11,7 @@ class WordPressXmlRpcClient
 {
     public static function call(Site $site, string $method, array $params = []): mixed
     {
-        $response = Http::timeout(30)
+        $response = Http::timeout(60)
             ->withBody(self::buildRequest($method, $params), 'text/xml')
             ->post("{$site->url}/xmlrpc.php");
 

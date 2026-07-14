@@ -15,6 +15,10 @@ class PublishLinkJob implements ShouldQueue
 
     public int $tries = 1;
 
+    // Worst case is 3 sequential XML-RPC calls (HomepagePublisher: getPost, editPost, getPost)
+    // at up to 60s each — must exceed that or the job gets killed mid-publish on a slow site.
+    public int $timeout = 200;
+
     public function __construct(public readonly Link $link) {}
 
     public function handle(LinkPublisher $publisher): void
