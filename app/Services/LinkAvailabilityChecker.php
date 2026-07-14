@@ -114,11 +114,13 @@ class LinkAvailabilityChecker
     {
         $lower = strtolower($body);
 
-        // Deliberately excludes generic captcha-widget markers (g-recaptcha, hcaptcha, etc.) and a
-        // former setTimeout+location.reload combo check — both showed up on plenty of legitimate,
-        // content-rich pages (a contact-form captcha, a lightbox plugin, a form's bfcache reload
-        // guard) with nothing to do with an actual bot-challenge wall. Only specific interstitial-
-        // page phrases belong here.
+        // Deliberately excludes generic captcha/bot-management script markers (g-recaptcha,
+        // hcaptcha, cdn-cgi/challenge-platform, challenges.cloudflare.com, etc.) and a former
+        // setTimeout+location.reload combo check — all showed up on plenty of legitimate,
+        // content-rich pages (a contact-form captcha, a lightbox plugin, Cloudflare's background
+        // bot-management script) with nothing to do with an actual bot-challenge wall. Only
+        // specific interstitial-page phrases — text a real "please wait" page actually shows —
+        // belong here.
         $markers = [
             'one moment, please',
             'just a moment',
@@ -128,8 +130,6 @@ class LinkAvailabilityChecker
             'enable javascript and cookies to continue',
             'verify you are human',
             'are you a robot',
-            'cdn-cgi/challenge-platform',
-            'challenges.cloudflare.com',
         ];
 
         foreach ($markers as $marker) {
