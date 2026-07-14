@@ -11,16 +11,21 @@ readonly class LinkCheckResult
         public bool $pageExists,
         public bool $hasLink,
         public bool $blocked = false,
+        public bool $compromised = false,
         public ?string $error = null,
     ) {}
 
     public function isWorking(): bool
     {
-        return $this->pageExists && $this->hasLink && !$this->blocked;
+        return $this->pageExists && $this->hasLink && !$this->blocked && !$this->compromised;
     }
 
     public function status(): string
     {
+        if ($this->compromised) {
+            return 'compromised';
+        }
+
         if ($this->blocked) {
             return 'blocked';
         }
@@ -32,6 +37,9 @@ readonly class LinkCheckResult
     {
         if ($this->error) {
             return $this->error;
+        }
+        if ($this->compromised) {
+            return 'Page looks compromised with a hidden spam link farm';
         }
         if ($this->blocked) {
             return 'Blocked by anti-bot protection';

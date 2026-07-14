@@ -23,7 +23,7 @@ class UpdateLinkRequest extends FormRequest
             'type'    => 'required|in:post,homepage',
             'status'        => 'required|in:pending,published,failed',
             'failed_reason' => 'nullable|string',
-            'check_status'  => 'required|in:unknown,alive,not_found,blocked',
+            'check_status'  => 'required|in:unknown,alive,not_found,blocked,compromised',
             'check_error'   => 'nullable|string',
         ];
     }

@@ -52,7 +52,7 @@ class LinkAvailabilityChecker
                 $link,
                 pageExists: true,
                 hasLink: false,
-                blocked: true,
+                compromised: true,
                 error: 'Page looks compromised with a hidden spam link farm (cloaking) — cannot reliably verify visibility',
             );
         }

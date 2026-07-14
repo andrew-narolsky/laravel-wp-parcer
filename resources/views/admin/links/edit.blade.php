@@ -177,6 +177,12 @@
                                 <label for="check_status_blocked">
                                     <i class="mdi mdi-block-helper"></i> Blocked
                                 </label>
+
+                                <input type="radio" name="check_status" id="check_status_compromised" value="compromised"
+                                       {{ old('check_status', $link->check_status) === 'compromised' ? 'checked' : '' }}>
+                                <label for="check_status_compromised">
+                                    <i class="mdi mdi-shield-alert-outline"></i> Compromised
+                                </label>
                             </div>
                             @error('check_status')
                                 <div class="text-danger small mt-1">{{ $message }}</div>

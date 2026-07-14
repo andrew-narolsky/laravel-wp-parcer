@@ -46,7 +46,7 @@
     @php
         $typeFilters = ['' => 'All', 'post' => 'Posts', 'homepage' => 'Homepage'];
         $statusFilters = ['' => 'All', 'published' => 'Published'];
-        $checkFilters = ['' => 'All', 'alive' => 'Alive', 'not_found' => 'Not found', 'blocked' => 'Blocked'];
+        $checkFilters = ['' => 'All', 'alive' => 'Alive', 'not_found' => 'Not found', 'blocked' => 'Blocked', 'compromised' => 'Compromised'];
     @endphp
     <div class="btn-group mb-3 me-2" role="group">
         @foreach($typeFilters as $value => $label)
@@ -159,6 +159,8 @@
                                                 <span class="badge badge-danger" title="{{ $link->check_error }} ({{ $link->checked_at?->format('d.m.Y H:i') }})">Not found</span>
                                             @elseif($link->check_status === 'blocked')
                                                 <span class="badge badge-warning" title="{{ $link->check_error }} ({{ $link->checked_at?->format('d.m.Y H:i') }})">Blocked</span>
+                                            @elseif($link->check_status === 'compromised')
+                                                <span class="badge badge-dark" title="{{ $link->check_error }} ({{ $link->checked_at?->format('d.m.Y H:i') }})">Compromised</span>
                                             @else
                                                 <span class="badge badge-secondary">Unknown</span>
                                             @endif
