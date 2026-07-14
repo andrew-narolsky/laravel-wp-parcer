@@ -6,6 +6,7 @@ use App\DTO\LinkCheckResult;
 use App\Models\Link;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use RuntimeException;
 
 class LinkAvailabilityChecker
 {
@@ -18,10 +19,18 @@ class LinkAvailabilityChecker
         }
 
         if ($this->useBrowserless()) {
+            if (!$this->unblocker->isConfigured()) {
+                throw new RuntimeException('LINK_CHECK_DRIVER=browserless but BROWSERLESS_TOKEN is not set');
+            }
+
             $body = $this->unblocker->fetch($link->wp_url);
 
+            // Unlike a plain-HTTP connection failure (a real signal the site is down), a failed
+            // Browserless call (quota exhausted, API outage, timeout) says nothing about the link
+            // itself — throwing here leaves check_status untouched instead of recording a false
+            // "not_found". allowFailures() on the analysis batch means this doesn't block the rest.
             if ($body === null) {
-                return new LinkCheckResult($link, pageExists: false, hasLink: false, error: 'Browserless request failed or is not configured');
+                throw new RuntimeException('Browserless request failed — see logs for details');
             }
         } else {
             try {
