@@ -20,7 +20,7 @@
                         <i class="mdi mdi-magnify me-1"></i> Analyze
                     </button>
                 </form>
-                <a href="{{ route('admin.links.export') }}" class="btn btn-outline-secondary">
+                <a href="{{ route('admin.links.export', request()->query()) }}" class="btn btn-outline-secondary">
                     <i class="mdi mdi-download me-1"></i> Export CSV
                 </a>
                 <a href="{{ route('admin.links.create') }}" class="btn btn-primary">Add Link</a>

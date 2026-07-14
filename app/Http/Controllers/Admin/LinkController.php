@@ -29,26 +29,12 @@ class LinkController extends Controller
 
     public function index(Request $request): View
     {
-        $sort        = $request->string('sort')->toString();
-        $direction   = $request->string('direction')->toString() === 'asc' ? 'asc' : 'desc';
-        $type        = $request->string('type')->toString();
-        $status      = $request->string('status')->toString();
-        $checkStatus = $request->string('check_status')->toString();
+        $sort      = $request->string('sort')->toString();
+        $direction = $request->string('direction')->toString() === 'asc' ? 'asc' : 'desc';
+        [$type, $status, $checkStatus] = $this->resolveFilters($request);
 
         if (!array_key_exists($sort, self::SORTABLE)) {
             $sort = 'created_at';
-        }
-
-        if (!in_array($type, ['post', 'homepage'], true)) {
-            $type = '';
-        }
-
-        if ($status !== 'published') {
-            $status = '';
-        }
-
-        if ($checkStatus !== 'alive') {
-            $checkStatus = '';
         }
 
         $links = Link::query()
@@ -125,35 +111,57 @@ class LinkController extends Controller
         return redirect()->back()->with('success', 'Analysis started. Report will be sent to ' . config('services.report_email') . '.');
     }
 
-    public function export(): StreamedResponse
+    public function export(Request $request): StreamedResponse
     {
+        [$type, $status, $checkStatus] = $this->resolveFilters($request);
+
         $filename = 'links-' . now()->format('Y-m-d-His') . '.csv';
 
-        return response()->streamDownload(function () {
+        return response()->streamDownload(function () use ($type, $status, $checkStatus) {
             $handle = fopen('php://output', 'w');
 
             fputcsv($handle, ['id', 'site', 'title', 'url', 'wp_url', 'anchor', 'text', 'image', 'type', 'status', 'failed_reason', 'check_status', 'check_error', 'checked_at']);
 
-            Link::with('site')->orderBy('id')->lazy(500)->each(function (Link $link) use ($handle) {
-                fputcsv($handle, [
-                    $link->id,
-                    $link->site->name ?? '',
-                    $link->title,
-                    $link->url,
-                    $link->wp_url,
-                    $link->anchor,
-                    $link->text,
-                    $link->image,
-                    $link->type,
-                    $link->status,
-                    $link->failed_reason,
-                    $link->check_status,
-                    $link->check_error,
-                    $link->checked_at,
-                ]);
-            });
+            Link::with('site')
+                ->when($type, fn ($query) => $query->where('type', $type))
+                ->when($status, fn ($query) => $query->where('status', $status))
+                ->when($checkStatus, fn ($query) => $query->where('check_status', $checkStatus))
+                ->orderBy('id')
+                ->lazy(500)
+                ->each(function (Link $link) use ($handle) {
+                    fputcsv($handle, [
+                        $link->id,
+                        $link->site->name ?? '',
+                        $link->title,
+                        $link->url,
+                        $link->wp_url,
+                        $link->anchor,
+                        $link->text,
+                        $link->image,
+                        $link->type,
+                        $link->status,
+                        $link->failed_reason,
+                        $link->check_status,
+                        $link->check_error,
+                        $link->checked_at,
+                    ]);
+                });
 
             fclose($handle);
         }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    /** @return array{0: string, 1: string, 2: string} [type, status, checkStatus] */
+    private function resolveFilters(Request $request): array
+    {
+        $type        = $request->string('type')->toString();
+        $status      = $request->string('status')->toString();
+        $checkStatus = $request->string('check_status')->toString();
+
+        return [
+            in_array($type, ['post', 'homepage'], true) ? $type : '',
+            $status === 'published' ? $status : '',
+            $checkStatus === 'alive' ? $checkStatus : '',
+        ];
     }
 }
