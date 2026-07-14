@@ -105,10 +105,11 @@ class LinkAvailabilityChecker
     {
         $lower = strtolower($body);
 
-        // Deliberately excludes generic captcha-widget markers (g-recaptcha, hcaptcha, etc.) —
-        // those show up on plenty of legitimate pages via a normal contact/comment form and
-        // don't mean the whole page is a bot-challenge wall. Only specific interstitial-page
-        // phrases belong here.
+        // Deliberately excludes generic captcha-widget markers (g-recaptcha, hcaptcha, etc.) and a
+        // former setTimeout+location.reload combo check — both showed up on plenty of legitimate,
+        // content-rich pages (a contact-form captcha, a lightbox plugin, a form's bfcache reload
+        // guard) with nothing to do with an actual bot-challenge wall. Only specific interstitial-
+        // page phrases belong here.
         $markers = [
             'one moment, please',
             'just a moment',
@@ -128,6 +129,6 @@ class LinkAvailabilityChecker
             }
         }
 
-        return str_contains($lower, 'settimeout') && str_contains($lower, 'location.reload');
+        return false;
     }
 }
