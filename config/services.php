@@ -41,4 +41,12 @@ return [
 
     'homepage_insert_position' => env('HOMEPAGE_INSERT_POSITION', 'paragraph'),
 
+    // http | browserless
+    'link_check_driver' => env('LINK_CHECK_DRIVER', 'http'),
+
+    'browserless' => [
+        'token' => env('BROWSERLESS_TOKEN'),
+        'url'   => env('BROWSERLESS_URL', 'https://production-sfo.browserless.io'),
+    ],
+
 ];

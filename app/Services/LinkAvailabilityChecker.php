@@ -9,23 +9,33 @@ use Illuminate\Support\Facades\Http;
 
 class LinkAvailabilityChecker
 {
+    public function __construct(private readonly BrowserlessUnblocker $unblocker) {}
+
     public function check(Link $link): LinkCheckResult
     {
         if (!$link->wp_url) {
             return new LinkCheckResult($link, pageExists: false, hasLink: false, error: 'No published URL');
         }
 
-        try {
-            $response = Http::timeout(15)->get($link->wp_url);
-        } catch (ConnectionException $e) {
-            return new LinkCheckResult($link, pageExists: false, hasLink: false, error: 'Connection error: ' . $e->getMessage());
-        }
+        if ($this->useBrowserless()) {
+            $body = $this->unblocker->fetch($link->wp_url);
 
-        if (!$response->successful()) {
-            return new LinkCheckResult($link, pageExists: false, hasLink: false, error: "Cannot fetch page: HTTP {$response->status()}");
-        }
+            if ($body === null) {
+                return new LinkCheckResult($link, pageExists: false, hasLink: false, error: 'Browserless request failed or is not configured');
+            }
+        } else {
+            try {
+                $response = Http::timeout(15)->get($link->wp_url);
+            } catch (ConnectionException $e) {
+                return new LinkCheckResult($link, pageExists: false, hasLink: false, error: 'Connection error: ' . $e->getMessage());
+            }
 
-        $body = $response->body();
+            if (!$response->successful()) {
+                return new LinkCheckResult($link, pageExists: false, hasLink: false, error: "Cannot fetch page: HTTP {$response->status()}");
+            }
+
+            $body = $response->body();
+        }
 
         if ($this->looksLikeBotChallenge($body)) {
             return new LinkCheckResult(
@@ -52,6 +62,11 @@ class LinkAvailabilityChecker
             pageExists: true,
             hasLink: $this->hasLink($body, $link),
         );
+    }
+
+    private function useBrowserless(): bool
+    {
+        return config('services.link_check_driver') === 'browserless';
     }
 
     private function hasLink(string $body, Link $link): bool
