@@ -29,9 +29,11 @@ class LinkController extends Controller
 
     public function index(Request $request): View
     {
-        $sort      = $request->string('sort')->toString();
-        $direction = $request->string('direction')->toString() === 'asc' ? 'asc' : 'desc';
-        $type      = $request->string('type')->toString();
+        $sort        = $request->string('sort')->toString();
+        $direction   = $request->string('direction')->toString() === 'asc' ? 'asc' : 'desc';
+        $type        = $request->string('type')->toString();
+        $status      = $request->string('status')->toString();
+        $checkStatus = $request->string('check_status')->toString();
 
         if (!array_key_exists($sort, self::SORTABLE)) {
             $sort = 'created_at';
@@ -41,16 +43,26 @@ class LinkController extends Controller
             $type = '';
         }
 
+        if ($status !== 'published') {
+            $status = '';
+        }
+
+        if ($checkStatus !== 'alive') {
+            $checkStatus = '';
+        }
+
         $links = Link::query()
             ->leftJoin('sites', 'sites.id', '=', 'links.site_id')
             ->select('links.*')
             ->with('site')
             ->when($type, fn ($query) => $query->where('links.type', $type))
+            ->when($status, fn ($query) => $query->where('links.status', $status))
+            ->when($checkStatus, fn ($query) => $query->where('links.check_status', $checkStatus))
             ->orderBy(self::SORTABLE[$sort], $direction)
             ->paginate(50)
             ->withQueryString();
 
-        return view('admin.links.index', compact('links', 'sort', 'direction', 'type'));
+        return view('admin.links.index', compact('links', 'sort', 'direction', 'type', 'status', 'checkStatus'));
     }
 
     public function create(): View

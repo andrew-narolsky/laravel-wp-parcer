@@ -38,8 +38,10 @@
 
     @php
         $typeFilters = ['' => 'All', 'post' => 'Posts', 'homepage' => 'Homepage'];
+        $statusFilters = ['' => 'All', 'published' => 'Published'];
+        $checkFilters = ['' => 'All', 'alive' => 'Alive'];
     @endphp
-    <div class="btn-group mb-3" role="group">
+    <div class="btn-group mb-3 me-2" role="group">
         @foreach($typeFilters as $value => $label)
             @php
                 $query = array_merge(request()->except(['type', 'page']), $value ? ['type' => $value] : []);
@@ -47,6 +49,28 @@
             <a href="{{ request()->url() . ($query ? '?' . http_build_query($query) : '') }}"
                class="btn {{ $type === $value ? 'btn-primary' : 'btn-outline-secondary' }}">
                 {{ $label }}
+            </a>
+        @endforeach
+    </div>
+    <div class="btn-group mb-3 me-2" role="group">
+        @foreach($statusFilters as $value => $label)
+            @php
+                $query = array_merge(request()->except(['status', 'page']), $value ? ['status' => $value] : []);
+            @endphp
+            <a href="{{ request()->url() . ($query ? '?' . http_build_query($query) : '') }}"
+               class="btn {{ $status === $value ? 'btn-primary' : 'btn-outline-secondary' }}">
+                {{ $label }}
+            </a>
+        @endforeach
+    </div>
+    <div class="btn-group mb-3" role="group">
+        @foreach($checkFilters as $value => $label)
+            @php
+                $query = array_merge(request()->except(['check_status', 'page']), $value ? ['check_status' => $value] : []);
+            @endphp
+            <a href="{{ request()->url() . ($query ? '?' . http_build_query($query) : '') }}"
+               class="btn {{ $checkStatus === $value ? 'btn-primary' : 'btn-outline-secondary' }}">
+                Check: {{ $label }}
             </a>
         @endforeach
     </div>
