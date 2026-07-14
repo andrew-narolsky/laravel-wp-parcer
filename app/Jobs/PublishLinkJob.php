@@ -39,6 +39,8 @@ class PublishLinkJob implements ShouldQueue
         ]);
 
         $link->update(['status' => 'published', 'wp_url' => $wpUrl, 'failed_reason' => null]);
+
+        dispatch(new AnalyzeLinkJob($link->id));
     }
 
     public function failed(Throwable $exception): void
