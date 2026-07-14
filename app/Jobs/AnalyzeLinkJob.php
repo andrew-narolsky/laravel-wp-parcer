@@ -36,5 +36,8 @@ class AnalyzeLinkJob implements ShouldQueue
             'check_error'  => $result->isWorking() ? null : $result->failReason(),
             'checked_at'   => now(),
         ]);
+
+        $field = $link->type === 'homepage' ? 'homepage_available' : 'posts_available';
+        $link->site()->update([$field => $result->status() === 'alive']);
     }
 }

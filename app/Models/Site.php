@@ -7,12 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Site extends Model
 {
-    protected $fillable = ['name', 'url', 'login', 'password', 'is_active'];
+    protected $fillable = ['name', 'url', 'login', 'password', 'is_active', 'posts_available', 'homepage_available'];
 
     protected $hidden = ['password'];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'is_active'          => 'boolean',
+        'posts_available'    => 'boolean',
+        'homepage_available' => 'boolean',
     ];
 
     protected function url(): Attribute

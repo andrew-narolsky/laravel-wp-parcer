@@ -68,6 +68,8 @@
                                     <th>URL</th>
                                     <th>Login</th>
                                     <th>Status</th>
+                                    <th>Posts</th>
+                                    <th>Homepage</th>
                                     <th>Added</th>
                                     <th></th>
                                 </tr>
@@ -90,6 +92,24 @@
                                                 <span class="badge badge-danger">Inactive</span>
                                             @endif
                                         </td>
+                                        <td>
+                                            @if(is_null($site->posts_available))
+                                                <span class="badge badge-secondary">Unknown</span>
+                                            @elseif($site->posts_available)
+                                                <span class="badge badge-success">Yes</span>
+                                            @else
+                                                <span class="badge badge-danger">No</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(is_null($site->homepage_available))
+                                                <span class="badge badge-secondary">Unknown</span>
+                                            @elseif($site->homepage_available)
+                                                <span class="badge badge-success">Yes</span>
+                                            @else
+                                                <span class="badge badge-danger">No</span>
+                                            @endif
+                                        </td>
                                         <td>{{ $site->created_at->format('d.m.Y') }}</td>
 
                                         <td class="d-flex flex-row justify-content-end">
@@ -109,7 +129,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center text-muted py-4">No sites yet</td>
+                                        <td colspan="9" class="text-center text-muted py-4">No sites yet</td>
                                     </tr>
                                 @endforelse
                             </tbody>
