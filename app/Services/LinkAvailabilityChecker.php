@@ -105,6 +105,10 @@ class LinkAvailabilityChecker
     {
         $lower = strtolower($body);
 
+        // Deliberately excludes generic captcha-widget markers (g-recaptcha, hcaptcha, etc.) —
+        // those show up on plenty of legitimate pages via a normal contact/comment form and
+        // don't mean the whole page is a bot-challenge wall. Only specific interstitial-page
+        // phrases belong here.
         $markers = [
             'one moment, please',
             'just a moment',
@@ -116,10 +120,6 @@ class LinkAvailabilityChecker
             'are you a robot',
             'cdn-cgi/challenge-platform',
             'challenges.cloudflare.com',
-            'g-recaptcha',
-            'h-captcha',
-            'hcaptcha.com',
-            'px-captcha',
         ];
 
         foreach ($markers as $marker) {
