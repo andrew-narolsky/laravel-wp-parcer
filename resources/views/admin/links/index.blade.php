@@ -13,8 +13,15 @@
                 </h3>
             </div>
             <div class="col-auto ms-auto text-end mt-n1 d-flex gap-2">
-                <form action="{{ route('admin.links.analyze') }}" method="POST"
-                      onsubmit="return confirm('Run links analysis? A report will be sent to email.')">
+                @php
+                    $analyzeScope = collect([
+                        $type ? ucfirst($type) : null,
+                        $status ? ucfirst($status) : null,
+                        $checkStatus ? ucfirst($checkStatus) : null,
+                    ])->filter()->implode(', ');
+                @endphp
+                <form action="{{ route('admin.links.analyze', request()->query()) }}" method="POST"
+                      onsubmit="return confirm('Run links analysis{{ $analyzeScope ? ' for: ' . $analyzeScope : '' }}? A report will be sent to email.')">
                     @csrf
                     <button type="submit" class="btn btn-outline-info">
                         <i class="mdi mdi-magnify me-1"></i> Analyze

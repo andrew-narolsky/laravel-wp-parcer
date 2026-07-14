@@ -12,21 +12,29 @@ class AnalyzeLinksJob implements ShouldQueue
 {
     use Queueable;
 
+    public function __construct(
+        public readonly string $type = '',
+        public readonly string $status = '',
+        public readonly string $checkStatus = '',
+    ) {}
+
     public function handle(): void
     {
-        $jobs = Link::where('status', 'published')
-            ->select('id')
-            ->lazy(100)
-            ->map(fn(Link $link) => new AnalyzeLinkJob($link->id));
+        $ids = Link::query()
+            ->when($this->type, fn ($query) => $query->where('type', $this->type))
+            ->when($this->status, fn ($query) => $query->where('status', $this->status))
+            ->when($this->checkStatus, fn ($query) => $query->where('check_status', $this->checkStatus))
+            ->pluck('id');
 
-        if ($jobs->isEmpty()) {
-            dispatch(new SendLinksAnalysisReportJob());
+        if ($ids->isEmpty()) {
+            dispatch(new SendLinksAnalysisReportJob($ids->all()));
             return;
         }
 
-        Bus::batch($jobs->all())
+        Bus::batch($ids->map(fn (int $id) => new AnalyzeLinkJob($id))->all())
             ->name('links-analysis')
-            ->finally(fn(Batch $batch) => dispatch(new SendLinksAnalysisReportJob()))
+            ->allowFailures()
+            ->finally(fn(Batch $batch) => dispatch(new SendLinksAnalysisReportJob($ids->all())))
             ->dispatch();
     }
 }

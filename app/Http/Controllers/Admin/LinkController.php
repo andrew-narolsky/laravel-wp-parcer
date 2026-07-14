@@ -104,9 +104,11 @@ class LinkController extends Controller
         return redirect()->back()->with('success', 'Queued for status check.');
     }
 
-    public function analyze(): RedirectResponse
+    public function analyze(Request $request): RedirectResponse
     {
-        dispatch(new AnalyzeLinksJob());
+        [$type, $status, $checkStatus] = $this->resolveFilters($request);
+
+        dispatch(new AnalyzeLinksJob($type, $status, $checkStatus));
 
         return redirect()->back()->with('success', 'Analysis started. Report will be sent to ' . config('services.report_email') . '.');
     }

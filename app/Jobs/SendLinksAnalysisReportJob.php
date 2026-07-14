@@ -13,10 +13,13 @@ class SendLinksAnalysisReportJob implements ShouldQueue
 {
     use Queueable;
 
+    /** @param array<int> $linkIds The exact links analyzed in this run — reported by ID, not re-filtered, so the report reflects them even if their check_status changed during analysis. */
+    public function __construct(public readonly array $linkIds) {}
+
     public function handle(): void
     {
         $links = Link::with('site')
-            ->where('status', 'published')
+            ->whereIn('id', $this->linkIds)
             ->whereNotNull('checked_at')
             ->get();
 
