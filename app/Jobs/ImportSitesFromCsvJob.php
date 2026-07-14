@@ -72,12 +72,12 @@ class ImportSitesFromCsvJob implements ShouldQueue
                 'site_id' => $site->id,
                 'url'     => $matches[1],
                 'anchor'  => trim(strip_tags($matches[2])),
+                'type'    => $this->linkType,
             ],
             [
                 'title' => $title,
                 'text'  => $description,
                 'image' => trim($data['image'] ?? '') ?: null,
-                'type'  => $this->linkType,
             ]
         );
 
