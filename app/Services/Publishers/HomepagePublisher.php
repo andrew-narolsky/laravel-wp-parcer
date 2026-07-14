@@ -23,7 +23,7 @@ class HomepagePublisher implements LinkPublisherContract
             ['post_content'],
         ]);
 
-        $newContent = $this->insertBeforeFirstLinkParagraph($post['post_content'] ?? '', $link->text);
+        $newContent = $this->insertFragment($post['post_content'] ?? '', $link->text);
 
         WordPressXmlRpcClient::call($site, 'wp.editPost', [
             0,
@@ -46,6 +46,15 @@ class HomepagePublisher implements LinkPublisherContract
             'link'   => $updated['link'] ?? null,
             'status' => $updated['post_status'] ?? null,
         ];
+    }
+
+    private function insertFragment(string $content, string $fragment): string
+    {
+        return match (config('services.homepage_insert_position')) {
+            'start' => $fragment . "\n" . $content,
+            'end'   => $content . "\n" . $fragment,
+            default => $this->insertBeforeFirstLinkParagraph($content, $fragment),
+        };
     }
 
     private function insertBeforeFirstLinkParagraph(string $content, string $fragment): string

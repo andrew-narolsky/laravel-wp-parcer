@@ -39,4 +39,6 @@ return [
 
     'link_images_path' => env('LINK_IMAGES_PATH', base_path('temp')),
 
+    'homepage_insert_position' => env('HOMEPAGE_INSERT_POSITION', 'paragraph'),
+
 ];
