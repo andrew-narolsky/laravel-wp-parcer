@@ -46,7 +46,7 @@
     @php
         $typeFilters = ['' => 'All', 'post' => 'Posts', 'homepage' => 'Homepage'];
         $statusFilters = ['' => 'All', 'published' => 'Published'];
-        $checkFilters = ['' => 'All', 'alive' => 'Alive', 'blocked' => 'Blocked'];
+        $checkFilters = ['' => 'All', 'alive' => 'Alive', 'not_found' => 'Not found', 'blocked' => 'Blocked'];
     @endphp
     <div class="btn-group mb-3 me-2" role="group">
         @foreach($typeFilters as $value => $label)
@@ -77,7 +77,7 @@
             @endphp
             <a href="{{ request()->url() . ($query ? '?' . http_build_query($query) : '') }}"
                class="btn {{ $checkStatus === $value ? 'btn-primary' : 'btn-outline-secondary' }}">
-                Check: {{ $label }}
+                {{ $label }}
             </a>
         @endforeach
     </div>

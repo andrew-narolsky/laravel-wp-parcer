@@ -163,7 +163,7 @@ class LinkController extends Controller
         return [
             in_array($type, ['post', 'homepage'], true) ? $type : '',
             $status === 'published' ? $status : '',
-            in_array($checkStatus, ['alive', 'blocked'], true) ? $checkStatus : '',
+            in_array($checkStatus, ['alive', 'blocked', 'not_found'], true) ? $checkStatus : '',
         ];
     }
 }
