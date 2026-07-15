@@ -148,7 +148,7 @@
                                 @forelse($links as $link)
                                     <tr>
                                         <td>{{ $links->firstItem() + $loop->index }}</td>
-                                        <td>{{ $link->site->name }}</td>
+                                        <td><a href="{{ $link->site->url }}" target="_blank">{{ $link->site->name }}</a></td>
                                         <td>
                                             @if($link->type === 'post')
                                                 <span class="badge badge-info">In post</span>
