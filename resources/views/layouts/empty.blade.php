@@ -10,7 +10,7 @@
         'resources/assets/admin/css/styles.css'
     ])
 
-    <link rel="icon" type="image/png" href="{{ asset('/build/images/favicon.ico') }}"/>
+    @include('partials.favicon')
 </head>
 <body>
 <div class="container-scroller">

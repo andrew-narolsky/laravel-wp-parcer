@@ -12,7 +12,7 @@
         'resources/assets/admin/css/custom.css'
     ])
 
-    <link rel="icon" type="image/png" href="{{ asset('/build/images/favicon.ico') }}"/>
+    @include('partials.favicon')
     @yield('styles')
     @stack('styles')
 </head>
