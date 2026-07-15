@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LinkController;
 use App\Http\Controllers\Admin\NotificationController;
@@ -28,4 +29,17 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
     Route::resource('links', LinkController::class)->names('admin.links');
     Route::post('links/{link}/publish', [LinkController::class, 'publish'])->name('admin.links.publish');
     Route::post('links/{link}/check', [LinkController::class, 'check'])->name('admin.links.check');
+
+    Route::get('backups', [BackupController::class, 'index'])->name('admin.backups.index');
+    Route::post('backups', [BackupController::class, 'store'])->name('admin.backups.store');
+    Route::post('backups/upload', [BackupController::class, 'upload'])->name('admin.backups.upload');
+    Route::get('backups/{filename}/download', [BackupController::class, 'download'])
+        ->where('filename', '[\w\-\.]+')
+        ->name('admin.backups.download');
+    Route::post('backups/{filename}/restore', [BackupController::class, 'restore'])
+        ->where('filename', '[\w\-\.]+')
+        ->name('admin.backups.restore');
+    Route::delete('backups/{filename}', [BackupController::class, 'destroy'])
+        ->where('filename', '[\w\-\.]+')
+        ->name('admin.backups.destroy');
 });

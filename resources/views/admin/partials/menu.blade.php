@@ -20,4 +20,10 @@
             <i class="mdi mdi-link menu-icon"></i>
         </a>
     </li>
+    <li class="nav-item @ifroute('admin.backups.*') active @endifroute">
+        <a class="nav-link" href="{{ route('admin.backups.index') }}">
+            <span class="menu-title">Backups</span>
+            <i class="mdi mdi-database menu-icon"></i>
+        </a>
+    </li>
 </ul>

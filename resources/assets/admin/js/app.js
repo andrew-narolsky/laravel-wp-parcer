@@ -48,8 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Generic AJAX form submission — used across pages so a form only needs the right class,
 // no per-page wiring. ajax-confirm-form asks for confirmation first; ajax-quiet-form doesn't.
+// A form with data-reload="<ms>" reloads the page after that delay so the toast is still
+// readable — for actions whose result (a new/removed row) only shows up on a fresh page load.
 document.addEventListener('submit', function (e) {
     const form = e.target;
+    const reloadAfter = form.dataset.reload ? parseInt(form.dataset.reload, 10) : null;
 
     if (form.matches('.ajax-confirm-form')) {
         e.preventDefault();
@@ -59,19 +62,34 @@ document.addEventListener('submit', function (e) {
         }
 
         axios.post(form.action, new FormData(form))
-            .then(({ data }) => window.showToast(data.message, 'success'))
+            .then(({ data }) => {
+                window.showToast(data.message, 'success');
+                if (reloadAfter) {
+                    setTimeout(() => location.reload(), reloadAfter);
+                }
+            })
             .catch(() => window.showToast('Failed to start.', 'error'));
     } else if (form.matches('.ajax-quiet-form')) {
         e.preventDefault();
 
         axios.post(form.action, new FormData(form))
-            .then(({ data }) => window.showToast(data.message, 'success'))
+            .then(({ data }) => {
+                window.showToast(data.message, 'success');
+                if (reloadAfter) {
+                    setTimeout(() => location.reload(), reloadAfter);
+                }
+            })
             .catch(() => window.showToast('Request failed.', 'error'));
     } else if (form.matches('.ajax-import-form')) {
         e.preventDefault();
 
         axios.post(form.action, new FormData(form))
-            .then(({ data }) => window.showToast(data.message, 'success'))
+            .then(({ data }) => {
+                window.showToast(data.message, 'success');
+                if (reloadAfter) {
+                    setTimeout(() => location.reload(), reloadAfter);
+                }
+            })
             .catch(() => window.showToast('Import failed to start.', 'error'))
             .finally(() => form.reset());
     }
