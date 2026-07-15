@@ -15,6 +15,14 @@ class AnalyzeLinksJob implements ShouldQueue
 {
     use Queueable;
 
+    // A retry after a timeout would re-select links and dispatch a whole second batch of
+    // AnalyzeLinkJob for the same links — one attempt only.
+    public int $tries = 1;
+
+    // Same reasoning as RepublishUnpublishedLinksJob — building a batch of hundreds of
+    // AnalyzeLinkJob can outrun the default 60s job timeout on a large link count.
+    public int $timeout = 300;
+
     public function __construct(
         public readonly string $type = '',
         public readonly string $status = '',

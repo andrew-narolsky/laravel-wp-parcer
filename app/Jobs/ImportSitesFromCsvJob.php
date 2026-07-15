@@ -18,6 +18,9 @@ class ImportSitesFromCsvJob implements ShouldQueue
 {
     use Queueable;
 
+    // A retry would reprocess the whole CSV and redispatch PublishLinkJob for every row again.
+    public int $tries = 1;
+
     public int $timeout = 3600;
 
     public function __construct(public readonly string $filePath, public readonly string $linkType = 'post') {}

@@ -8,8 +8,7 @@ class RepublishFinished extends Notification
 {
     public function __construct(
         public readonly string $linkType,
-        public readonly int $published,
-        public readonly int $failed,
+        public readonly int $count,
     ) {}
 
     public function via(object $notifiable): array
@@ -23,7 +22,7 @@ class RepublishFinished extends Notification
 
         return [
             'level'   => 'success',
-            'message' => "Republishing {$type} links finished: {$this->published} published, {$this->failed} failed.",
+            'message' => "Queued {$this->count} {$type} link(s) for republishing.",
         ];
     }
 }
