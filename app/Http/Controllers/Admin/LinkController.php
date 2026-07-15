@@ -87,7 +87,7 @@ class LinkController extends Controller
     {
         $link->delete();
 
-        return redirect()->route('admin.links.index')->with('success', 'Link deleted');
+        return back()->with('success', 'Link deleted');
     }
 
     public function publish(Link $link): JsonResponse
