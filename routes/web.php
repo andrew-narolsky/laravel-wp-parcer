@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LinkController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\SiteController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,6 +14,8 @@ Auth::routes([
 
 Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
     Route::get('/', [DashboardController::class, 'index'])->name('admin');
+
+    Route::get('notifications/poll', [NotificationController::class, 'poll'])->name('admin.notifications.poll');
 
     Route::post('sites/import', [SiteController::class, 'import'])->name('admin.sites.import');
     Route::post('sites/import-homepage', [SiteController::class, 'importHomepage'])->name('admin.sites.import_homepage');

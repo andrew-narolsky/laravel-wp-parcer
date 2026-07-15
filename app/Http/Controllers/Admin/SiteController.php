@@ -9,6 +9,7 @@ use App\Jobs\CheckSiteConnectionJob;
 use App\Jobs\ImportSitesFromCsvJob;
 use App\Models\Site;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -78,17 +79,17 @@ class SiteController extends Controller
         return redirect()->route('admin.sites.index')->with('success', 'Site deleted');
     }
 
-    public function import(Request $request): RedirectResponse
+    public function import(Request $request): JsonResponse
     {
         return $this->handleImport($request, 'post');
     }
 
-    public function importHomepage(Request $request): RedirectResponse
+    public function importHomepage(Request $request): JsonResponse
     {
         return $this->handleImport($request, 'homepage');
     }
 
-    private function handleImport(Request $request, string $linkType): RedirectResponse
+    private function handleImport(Request $request, string $linkType): JsonResponse
     {
         $request->validate([
             'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:102400'],
@@ -98,8 +99,7 @@ class SiteController extends Controller
 
         dispatch(new ImportSitesFromCsvJob($path, $linkType));
 
-        return redirect()->route('admin.sites.index')
-            ->with('success', 'CSV import started. Sites will appear shortly.');
+        return response()->json(['message' => 'CSV import started. Sites will appear shortly.']);
     }
 
     /** @return array{0: string, 1: string} [postsAvailable, homepageAvailable] */

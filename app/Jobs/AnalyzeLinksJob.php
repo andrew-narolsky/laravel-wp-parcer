@@ -3,10 +3,13 @@
 namespace App\Jobs;
 
 use App\Models\Link;
+use App\Models\User;
+use App\Notifications\AnalyzeStarted;
 use Illuminate\Bus\Batch;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Notification;
 
 class AnalyzeLinksJob implements ShouldQueue
 {
@@ -20,6 +23,8 @@ class AnalyzeLinksJob implements ShouldQueue
 
     public function handle(): void
     {
+        Notification::send(User::all(), new AnalyzeStarted());
+
         $ids = Link::query()
             ->when($this->type, fn ($query) => $query->where('type', $this->type))
             ->when($this->status, fn ($query) => $query->where('status', $this->status))

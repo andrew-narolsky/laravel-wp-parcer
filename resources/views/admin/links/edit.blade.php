@@ -17,7 +17,7 @@
                 </h3>
             </div>
             <div class="col-auto ms-auto text-end mt-n1">
-                <form action="{{ route('admin.links.publish', $link) }}" method="POST" class="d-inline">
+                <form action="{{ route('admin.links.publish', $link) }}" method="POST" class="d-inline ajax-quiet-form">
                     @csrf
                     <button type="submit" class="btn btn-primary">
                         <i class="mdi mdi-publish"></i> Publish to site

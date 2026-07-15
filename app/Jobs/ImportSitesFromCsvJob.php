@@ -4,10 +4,14 @@ namespace App\Jobs;
 
 use App\Models\Link;
 use App\Models\Site;
+use App\Models\User;
+use App\Notifications\ImportFinished;
+use App\Notifications\ImportStarted;
 use App\Services\CsvReader;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
 class ImportSitesFromCsvJob implements ShouldQueue
@@ -20,6 +24,8 @@ class ImportSitesFromCsvJob implements ShouldQueue
 
     public function handle(): void
     {
+        Notification::send(User::all(), new ImportStarted($this->linkType));
+
         $imported = $skipped = 0;
 
         foreach (CsvReader::rows($this->filePath) as $data) {
@@ -50,6 +56,8 @@ class ImportSitesFromCsvJob implements ShouldQueue
         Storage::delete($this->filePath);
 
         Log::info("Sites CSV import complete: {$imported} imported, {$skipped} skipped");
+
+        Notification::send(User::all(), new ImportFinished($this->linkType, $imported, $skipped));
     }
 
     private function createAndPublishLink(Site $site, array $data): void

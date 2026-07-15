@@ -4,10 +4,13 @@ namespace App\Jobs;
 
 use App\Mail\LinksReportMail;
 use App\Models\Link;
+use App\Models\User;
+use App\Notifications\AnalyzeFinished;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 
 class SendLinksAnalysisReportJob implements ShouldQueue
 {
@@ -23,12 +26,14 @@ class SendLinksAnalysisReportJob implements ShouldQueue
             ->whereNotNull('checked_at')
             ->get();
 
-        Log::info('AnalyzeLinksJob complete', [
-            'total'   => $links->count(),
-            'alive'   => $links->where('check_status', 'alive')->count(),
-            'broken'  => $links->where('check_status', 'not_found')->count(),
-        ]);
+        $total  = $links->count();
+        $alive  = $links->where('check_status', 'alive')->count();
+        $broken = $links->where('check_status', 'not_found')->count();
+
+        Log::info('AnalyzeLinksJob complete', ['total' => $total, 'alive' => $alive, 'broken' => $broken]);
 
         Mail::to(config('services.report_email'))->send(new LinksReportMail($links));
+
+        Notification::send(User::all(), new AnalyzeFinished($total, $alive, $broken));
     }
 }

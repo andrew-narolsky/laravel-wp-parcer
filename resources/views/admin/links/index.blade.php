@@ -21,7 +21,8 @@
                     ])->filter()->implode(', ');
                 @endphp
                 <form action="{{ route('admin.links.analyze', request()->query()) }}" method="POST"
-                      onsubmit="return confirm('Run links analysis{{ $analyzeScope ? ' for: ' . $analyzeScope : '' }}? A report will be sent to email.')">
+                      class="ajax-confirm-form"
+                      data-confirm="Run links analysis{{ $analyzeScope ? ' for: ' . $analyzeScope : '' }}? A report will be sent to email.">
                     @csrf
                     <button type="submit" class="btn btn-outline-info">
                         <i class="mdi mdi-magnify me-1"></i> Analyze
@@ -31,14 +32,14 @@
                     <i class="mdi mdi-download me-1"></i> Export CSV
                 </a>
                 <form action="{{ route('admin.links.republish_posts') }}" method="POST"
-                      onsubmit="return confirm('Retry publishing all unpublished post links?')">
+                      class="ajax-confirm-form" data-confirm="Retry publishing all unpublished post links?">
                     @csrf
                     <button type="submit" class="btn btn-outline-warning">
                         <i class="mdi mdi-refresh me-1"></i> Republish Posts
                     </button>
                 </form>
                 <form action="{{ route('admin.links.republish_homepage') }}" method="POST"
-                      onsubmit="return confirm('Retry publishing all unpublished homepage links?')">
+                      class="ajax-confirm-form" data-confirm="Retry publishing all unpublished homepage links?">
                     @csrf
                     <button type="submit" class="btn btn-outline-warning">
                         <i class="mdi mdi-refresh me-1"></i> Republish Homepage
@@ -181,13 +182,13 @@
                                         </td>
                                         <td>{{ $link->created_at->format('d.m.Y') }}</td>
                                         <td class="d-flex flex-row justify-content-end">
-                                            <form action="{{ route('admin.links.check', $link) }}" method="POST" class="d-inline me-2">
+                                            <form action="{{ route('admin.links.check', $link) }}" method="POST" class="d-inline me-2 ajax-quiet-form">
                                                 @csrf
                                                 <button type="submit" class="btn btn-inverse-secondary btn-icon" title="Check status">
                                                     <i class="mdi mdi-refresh"></i>
                                                 </button>
                                             </form>
-                                            <form action="{{ route('admin.links.publish', $link) }}" method="POST" class="d-inline me-2">
+                                            <form action="{{ route('admin.links.publish', $link) }}" method="POST" class="d-inline me-2 ajax-quiet-form">
                                                 @csrf
                                                 <button type="submit" class="btn btn-inverse-primary btn-icon" title="Publish to site">
                                                     <i class="mdi mdi-publish"></i>

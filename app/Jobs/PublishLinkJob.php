@@ -3,10 +3,13 @@
 namespace App\Jobs;
 
 use App\Models\Link;
+use App\Models\User;
+use App\Notifications\LinkPublishFinished;
 use App\Services\LinkPublisher;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Throwable;
 
 class PublishLinkJob implements ShouldQueue
@@ -19,7 +22,8 @@ class PublishLinkJob implements ShouldQueue
     // at up to 60s each — must exceed that or the job gets killed mid-publish on a slow site.
     public int $timeout = 200;
 
-    public function __construct(public readonly Link $link) {}
+    /** @param bool $notify Only true for a manual single-link "Publish" click — bulk imports/republishes stay quiet to avoid spamming a toast per link. */
+    public function __construct(public readonly Link $link, public readonly bool $notify = false) {}
 
     public function handle(LinkPublisher $publisher): void
     {
@@ -44,11 +48,19 @@ class PublishLinkJob implements ShouldQueue
 
         $link->update(['status' => 'published', 'wp_url' => $wpUrl, 'failed_reason' => null]);
 
+        if ($this->notify) {
+            Notification::send(User::all(), new LinkPublishFinished($link, success: true));
+        }
+
         dispatch(new AnalyzeLinkJob($link->id));
     }
 
     public function failed(Throwable $exception): void
     {
         $this->link->update(['status' => 'failed', 'failed_reason' => $exception->getMessage()]);
+
+        if ($this->notify) {
+            Notification::send(User::all(), new LinkPublishFinished($this->link, success: false, reason: $exception->getMessage()));
+        }
     }
 }

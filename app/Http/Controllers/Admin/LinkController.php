@@ -12,6 +12,7 @@ use App\Jobs\RepublishUnpublishedLinksJob;
 use App\Models\Link;
 use App\Models\Site;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -87,45 +88,45 @@ class LinkController extends Controller
         return redirect()->route('admin.links.index')->with('success', 'Link deleted');
     }
 
-    public function publish(Link $link): RedirectResponse
+    public function publish(Link $link): JsonResponse
     {
         $link->update(['status' => 'pending', 'failed_reason' => null]);
 
-        dispatch(new PublishLinkJob($link));
+        dispatch(new PublishLinkJob($link, notify: true));
 
-        return redirect()->back()->with('success', 'Queued for publishing.');
+        return response()->json(['message' => 'Queued for publishing.']);
     }
 
-    public function check(Link $link): RedirectResponse
+    public function check(Link $link): JsonResponse
     {
         $link->update(['check_status' => 'unknown', 'check_error' => null]);
 
-        dispatch(new AnalyzeLinkJob($link->id));
+        dispatch(new AnalyzeLinkJob($link->id, notify: true));
 
-        return redirect()->back()->with('success', 'Queued for status check.');
+        return response()->json(['message' => 'Queued for status check.']);
     }
 
-    public function analyze(Request $request): RedirectResponse
+    public function analyze(Request $request): JsonResponse
     {
         [$type, $status, $checkStatus] = $this->resolveFilters($request);
 
         dispatch(new AnalyzeLinksJob($type, $status, $checkStatus));
 
-        return redirect()->back()->with('success', 'Analysis started. Report will be sent to ' . config('services.report_email') . '.');
+        return response()->json(['message' => 'Analysis started. Report will be sent to ' . config('services.report_email') . '.']);
     }
 
-    public function republishPosts(): RedirectResponse
+    public function republishPosts(): JsonResponse
     {
         dispatch(new RepublishUnpublishedLinksJob('post'));
 
-        return redirect()->back()->with('success', 'Republishing unpublished post links.');
+        return response()->json(['message' => 'Republishing unpublished post links.']);
     }
 
-    public function republishHomepage(): RedirectResponse
+    public function republishHomepage(): JsonResponse
     {
         dispatch(new RepublishUnpublishedLinksJob('homepage'));
 
-        return redirect()->back()->with('success', 'Republishing unpublished homepage links.');
+        return response()->json(['message' => 'Republishing unpublished homepage links.']);
     }
 
     public function export(Request $request): StreamedResponse

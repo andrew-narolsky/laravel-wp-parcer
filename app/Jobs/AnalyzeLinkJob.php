@@ -3,10 +3,13 @@
 namespace App\Jobs;
 
 use App\Models\Link;
+use App\Models\User;
+use App\Notifications\LinkCheckFinished;
 use App\Services\LinkAvailabilityChecker;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Notification;
 
 class AnalyzeLinkJob implements ShouldQueue
 {
@@ -16,7 +19,8 @@ class AnalyzeLinkJob implements ShouldQueue
 
     public int $timeout = 150;
 
-    public function __construct(public readonly int $linkId) {}
+    /** @param bool $notify Only true for a manual single-link "Check" click — bulk analysis runs stay quiet to avoid spamming a toast per link. */
+    public function __construct(public readonly int $linkId, public readonly bool $notify = false) {}
 
     public function handle(LinkAvailabilityChecker $checker): void
     {
@@ -39,5 +43,9 @@ class AnalyzeLinkJob implements ShouldQueue
 
         $field = $link->type === 'homepage' ? 'homepage_available' : 'posts_available';
         $link->site()->update([$field => $result->status() === 'alive']);
+
+        if ($this->notify) {
+            Notification::send(User::all(), new LinkCheckFinished($link, $result->status()));
+        }
     }
 }
