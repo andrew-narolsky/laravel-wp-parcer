@@ -37,7 +37,12 @@ window.showToast = function (message, level = 'info') {
 // Poll for background job notifications (import/analyze start & finish)
 function pollNotifications() {
     axios.get('/admin/notifications/poll')
-        .then(({ data }) => data.notifications.forEach(n => window.showToast(n.message, n.level)))
+        .then(({ data }) => {
+            data.notifications.forEach(n => window.showToast(n.message, n.level));
+            if (data.notifications.some(n => n.reload)) {
+                setTimeout(() => location.reload(), 2000);
+            }
+        })
         .catch(() => {});
 }
 

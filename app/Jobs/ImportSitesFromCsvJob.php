@@ -92,6 +92,13 @@ class ImportSitesFromCsvJob implements ShouldQueue
             ]
         );
 
+        // Same (site_id, url, anchor, type) row as an already-published earlier import —
+        // publishing again would create a duplicate post/homepage-fragment on the site.
+        if (!$link->wasRecentlyCreated && $link->status === 'published') {
+            Log::info("Sites CSV import: skipping publish, link already published", ['link_id' => $link->id]);
+            return;
+        }
+
         dispatch(new PublishLinkJob($link));
     }
 }

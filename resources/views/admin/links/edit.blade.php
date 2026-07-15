@@ -19,7 +19,8 @@
             <div class="col-auto ms-auto text-end mt-n1">
                 <form action="{{ route('admin.links.publish', $link) }}" method="POST" class="d-inline ajax-quiet-form">
                     @csrf
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary"
+                            @if($link->check_status === 'alive') disabled title="Already confirmed alive — republishing would create a duplicate post" @endif>
                         <i class="mdi mdi-publish"></i> Publish to site
                     </button>
                 </form>

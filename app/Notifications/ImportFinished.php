@@ -24,6 +24,7 @@ class ImportFinished extends Notification
         return [
             'level'   => 'success',
             'message' => "Import of {$type} links finished: {$this->imported} imported, {$this->skipped} skipped.",
+            'reload'  => true,
         ];
     }
 }

@@ -18,6 +18,7 @@ class NotificationController extends Controller
             'notifications' => $notifications->map(fn ($n) => [
                 'message' => $n->data['message'] ?? '',
                 'level'   => $n->data['level'] ?? 'info',
+                'reload'  => $n->data['reload'] ?? false,
             ])->values(),
         ]);
     }
