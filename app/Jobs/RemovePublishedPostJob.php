@@ -136,7 +136,11 @@ class RemovePublishedPostJob implements ShouldQueue
 
     private function parseSlugSuffix(string $slug): array
     {
-        if (preg_match('/^(.+)-(\d+)$/', $slug, $matches)) {
+        // Single digit only — WordPress dedup suffixes are realistically 2-9, and a wider
+        // match would misfire on slugs that legitimately end in a number (e.g. a year, like
+        // "...-since-1985"), sending this job off probing thousands of nonexistent candidate
+        // URLs until it times out (link 1029, "prdesignsni-providing-quality-since-1985").
+        if (preg_match('/^(.+)-(\d)$/', $slug, $matches)) {
             return [$matches[1], (int) $matches[2]];
         }
 
