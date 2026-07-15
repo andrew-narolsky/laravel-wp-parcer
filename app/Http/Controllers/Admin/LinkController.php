@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateLinkRequest;
 use App\Jobs\AnalyzeLinkJob;
 use App\Jobs\AnalyzeLinksJob;
 use App\Jobs\PublishLinkJob;
+use App\Jobs\RemoveHomepageContentJob;
 use App\Jobs\RepublishUnpublishedLinksJob;
 use App\Models\Link;
 use App\Models\Site;
@@ -127,6 +128,13 @@ class LinkController extends Controller
         dispatch(new RepublishUnpublishedLinksJob('homepage'));
 
         return response()->json(['message' => 'Republishing unpublished homepage links.']);
+    }
+
+    public function removeHomepageContent(): JsonResponse
+    {
+        dispatch(new RemoveHomepageContentJob());
+
+        return response()->json(['message' => 'Removing our content from published homepage links.']);
     }
 
     public function export(Request $request): StreamedResponse

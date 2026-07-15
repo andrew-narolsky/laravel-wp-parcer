@@ -70,7 +70,7 @@ class HomepagePublisher implements LinkPublisherContract
         return $content . "\n" . $fragment;
     }
 
-    private function findFrontPageId(Site $site): int
+    public function findFrontPageId(Site $site): int
     {
         $response = Http::timeout(30)->get($site->url);
 

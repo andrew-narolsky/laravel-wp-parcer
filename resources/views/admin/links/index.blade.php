@@ -45,6 +45,13 @@
                         <i class="mdi mdi-refresh me-1"></i> Republish Homepage
                     </button>
                 </form>
+                <form action="{{ route('admin.links.remove_homepage_content') }}" method="POST"
+                      class="ajax-confirm-form" data-confirm="Remove our content from all published homepage links? This edits the live pages and cannot be undone automatically.">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="mdi mdi-delete-sweep me-1"></i> Remove Homepage Content
+                    </button>
+                </form>
                 <a href="{{ route('admin.links.create') }}" class="btn btn-primary">Add Link</a>
             </div>
         </div>
