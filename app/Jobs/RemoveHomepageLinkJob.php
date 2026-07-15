@@ -65,7 +65,14 @@ class RemoveHomepageLinkJob implements ShouldQueue
             'was_found'  => $cleaned !== $content,
         ]);
 
-        $link->update(['status' => 'pending', 'wp_url' => null, 'failed_reason' => null]);
+        $link->update([
+            'status'        => 'pending',
+            'wp_url'        => null,
+            'failed_reason' => null,
+            'check_status'  => 'unknown',
+            'check_error'   => null,
+            'checked_at'    => null,
+        ]);
     }
 
     public function failed(Throwable $exception): void

@@ -44,6 +44,8 @@ return [
     // http | browserless
     'link_check_driver' => env('LINK_CHECK_DRIVER', 'http'),
 
+    'show_remove_buttons' => env('SHOW_REMOVE_BUTTONS', false),
+
     'browserless' => [
         'token' => env('BROWSERLESS_TOKEN'),
         'url'   => env('BROWSERLESS_URL', 'https://production-sfo.browserless.io'),

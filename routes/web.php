@@ -26,6 +26,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
     Route::post('links/republish-posts', [LinkController::class, 'republishPosts'])->name('admin.links.republish_posts');
     Route::post('links/republish-homepage', [LinkController::class, 'republishHomepage'])->name('admin.links.republish_homepage');
     Route::post('links/remove-homepage-content', [LinkController::class, 'removeHomepageContent'])->name('admin.links.remove_homepage_content');
+    Route::post('links/remove-posts', [LinkController::class, 'removePosts'])->name('admin.links.remove_posts');
     Route::resource('links', LinkController::class)->names('admin.links');
     Route::post('links/{link}/publish', [LinkController::class, 'publish'])->name('admin.links.publish');
     Route::post('links/{link}/check', [LinkController::class, 'check'])->name('admin.links.check');

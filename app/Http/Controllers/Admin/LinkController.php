@@ -9,6 +9,7 @@ use App\Jobs\AnalyzeLinkJob;
 use App\Jobs\AnalyzeLinksJob;
 use App\Jobs\PublishLinkJob;
 use App\Jobs\RemoveHomepageContentJob;
+use App\Jobs\RemovePublishedPostsJob;
 use App\Jobs\RepublishUnpublishedLinksJob;
 use App\Models\Link;
 use App\Models\Site;
@@ -135,6 +136,13 @@ class LinkController extends Controller
         dispatch(new RemoveHomepageContentJob());
 
         return response()->json(['message' => 'Removing our content from published homepage links.']);
+    }
+
+    public function removePosts(): JsonResponse
+    {
+        dispatch(new RemovePublishedPostsJob());
+
+        return response()->json(['message' => 'Removing published post links.']);
     }
 
     public function export(Request $request): StreamedResponse

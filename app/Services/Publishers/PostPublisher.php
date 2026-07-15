@@ -7,6 +7,7 @@ use App\Models\Link;
 use App\Models\Site;
 use App\Services\WordPressXmlRpcClient;
 use App\Services\XmlRpcBase64Value;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -45,6 +46,35 @@ class PostPublisher implements LinkPublisherContract
             'link'   => $post['link'] ?? null,
             'status' => $post['post_status'] ?? null,
         ];
+    }
+
+    // Used to find the post ID behind an arbitrary published URL — WordPress XML-RPC has no
+    // "get post by slug/URL" call, so we fetch the page and read its own self-reported ID.
+    public function resolvePostId(string $url): ?int
+    {
+        try {
+            $response = Http::timeout(30)->get($url);
+        } catch (Throwable) {
+            return null;
+        }
+
+        if (!$response->successful()) {
+            return null;
+        }
+
+        $html = $response->body();
+
+        if (preg_match('/<link[^>]*rel=["\']shortlink["\'][^>]*>/i', $html, $tag)
+            && preg_match('/href=["\'][^"\']*[?&]p=(\d+)["\']/i', $tag[0], $matches)
+        ) {
+            return (int) $matches[1];
+        }
+
+        if (preg_match('/<body[^>]*class=["\'][^"\']*\bpostid-(\d+)\b/i', $html, $matches)) {
+            return (int) $matches[1];
+        }
+
+        return null;
     }
 
     private function uploadImage(Site $site, Link $link): ?int
