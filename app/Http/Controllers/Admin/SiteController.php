@@ -13,6 +13,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SiteController extends Controller
 {
@@ -122,6 +123,30 @@ class SiteController extends Controller
         dispatch(new ImportSitesFromCsvJob($path, $linkType, $request->integer('project_id') ?: null));
 
         return response()->json(['message' => 'CSV import started. Sites will appear shortly.']);
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        [$postsAvailable, $homepageAvailable] = $this->resolveAvailabilityFilters($request);
+
+        $filename = 'sites-' . now()->format('Y-m-d-His') . '.csv';
+
+        return response()->streamDownload(function () use ($postsAvailable, $homepageAvailable) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, ['site', 'login', 'password']);
+
+            Site::query()
+                ->when($postsAvailable !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'posts_available', $postsAvailable))
+                ->when($homepageAvailable !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'homepage_available', $homepageAvailable))
+                ->orderBy('id')
+                ->lazy(500)
+                ->each(function (Site $site) use ($handle) {
+                    fputcsv($handle, [$site->url, $site->login, $site->password]);
+                });
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv']);
     }
 
     /** @return array{0: string, 1: string} [postsAvailable, homepageAvailable] */

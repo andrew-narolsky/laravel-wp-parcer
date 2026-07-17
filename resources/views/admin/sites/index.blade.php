@@ -32,6 +32,9 @@
                         <i class="mdi mdi-upload me-1"></i> Import Homepage
                     </label>
                 </form>
+                <a href="{{ route('admin.sites.export', request()->query()) }}" class="btn btn-outline-secondary">
+                    <i class="mdi mdi-download me-1"></i> Export CSV
+                </a>
                 <a href="{{ route('admin.sites.create') }}" class="btn btn-primary">Add Site</a>
             </div>
         </div>
