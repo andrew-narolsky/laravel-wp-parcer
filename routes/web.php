@@ -30,6 +30,8 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
     Route::resource('links', LinkController::class)->names('admin.links');
     Route::post('links/{link}/publish', [LinkController::class, 'publish'])->name('admin.links.publish');
     Route::post('links/{link}/check', [LinkController::class, 'check'])->name('admin.links.check');
+    Route::post('links/{link}/remove-post', [LinkController::class, 'removeLinkPost'])->name('admin.links.remove_link_post');
+    Route::post('links/{link}/remove-homepage-content', [LinkController::class, 'removeLinkHomepageContent'])->name('admin.links.remove_link_homepage_content');
 
     Route::get('backups', [BackupController::class, 'index'])->name('admin.backups.index');
     Route::post('backups', [BackupController::class, 'store'])->name('admin.backups.store');

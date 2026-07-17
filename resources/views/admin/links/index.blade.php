@@ -212,6 +212,27 @@
                                                     <i class="mdi mdi-publish"></i>
                                                 </button>
                                             </form>
+                                            @if(config('services.show_remove_buttons'))
+                                                @if($link->type === 'post')
+                                                    <form action="{{ route('admin.links.remove_link_post', $link) }}" method="POST"
+                                                          class="d-inline me-2 ajax-confirm-form"
+                                                          data-confirm="Delete this published post from its site? This deletes the live WordPress post and cannot be undone automatically.">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-inverse-danger btn-icon" title="Remove published post">
+                                                            <i class="mdi mdi-delete-sweep"></i>
+                                                        </button>
+                                                    </form>
+                                                @elseif($link->type === 'homepage')
+                                                    <form action="{{ route('admin.links.remove_link_homepage_content', $link) }}" method="POST"
+                                                          class="d-inline me-2 ajax-confirm-form"
+                                                          data-confirm="Remove our content from this published homepage link? This edits the live page and cannot be undone automatically.">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-inverse-danger btn-icon" title="Remove homepage content">
+                                                            <i class="mdi mdi-delete-sweep"></i>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            @endif
                                             <a href="{{ route('admin.links.edit', $link) }}" class="btn btn-inverse-info btn-icon me-2">
                                                 <i class="mdi mdi-pencil"></i>
                                             </a>
