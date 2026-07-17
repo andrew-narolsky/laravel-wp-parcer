@@ -16,6 +16,7 @@
             <div class="col-auto ms-auto text-end mt-n1 d-flex gap-2">
                 <form action="{{ route('admin.sites.import') }}" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-2 ajax-import-form">
                     @csrf
+                    <input type="hidden" name="project_id" class="import-project-input" value="">
                     <input type="file" name="csv_file" id="csv_file" accept=".csv" class="d-none"
                            onchange="this.form.requestSubmit()">
                     <label for="csv_file" class="btn btn-outline-secondary mb-0" style="cursor:pointer">
@@ -24,6 +25,7 @@
                 </form>
                 <form action="{{ route('admin.sites.import_homepage') }}" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-2 ajax-import-form">
                     @csrf
+                    <input type="hidden" name="project_id" class="import-project-input" value="">
                     <input type="file" name="csv_file" id="csv_file_homepage" accept=".csv" class="d-none"
                            onchange="this.form.requestSubmit()">
                     <label for="csv_file_homepage" class="btn btn-outline-secondary mb-0" style="cursor:pointer">
@@ -42,6 +44,22 @@
             </ol>
         </nav>
     </div>
+
+    @php
+        $importProjectFilters = ['' => 'Auto-detect'] + $projects->pluck('name', 'id')->all();
+    @endphp
+    <div class="btn-group flex-wrap mb-3" role="group">
+        @foreach($importProjectFilters as $value => $label)
+            <button type="button"
+                    class="btn import-project-btn {{ $loop->first ? 'btn-primary' : 'btn-outline-secondary' }}"
+                    onclick="document.querySelectorAll('.import-project-input').forEach(i => i.value = '{{ $value }}');
+                             document.querySelectorAll('.import-project-btn').forEach(b => b.classList.replace('btn-primary', 'btn-outline-secondary'));
+                             this.classList.replace('btn-outline-secondary', 'btn-primary');">
+                {{ $label }}
+            </button>
+        @endforeach
+    </div>
+    <div class="w-100"></div>
 
     @php
         $availabilityFilters = ['' => 'All', 'yes' => 'Yes', 'no' => 'No'];

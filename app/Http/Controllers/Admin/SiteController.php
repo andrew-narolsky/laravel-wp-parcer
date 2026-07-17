@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreSiteRequest;
 use App\Http\Requests\Admin\UpdateSiteRequest;
 use App\Jobs\CheckSiteConnectionJob;
 use App\Jobs\ImportSitesFromCsvJob;
+use App\Models\Project;
 use App\Models\Site;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -41,7 +42,9 @@ class SiteController extends Controller
             ->paginate(50)
             ->withQueryString();
 
-        return view('admin.sites.index', compact('sites', 'sort', 'direction', 'postsAvailable', 'homepageAvailable'));
+        $projects = Project::orderBy('name')->get();
+
+        return view('admin.sites.index', compact('sites', 'sort', 'direction', 'postsAvailable', 'homepageAvailable', 'projects'));
     }
 
     public function create(): View
@@ -92,12 +95,13 @@ class SiteController extends Controller
     private function handleImport(Request $request, string $linkType): JsonResponse
     {
         $request->validate([
-            'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:102400'],
+            'csv_file'   => ['required', 'file', 'mimes:csv,txt', 'max:102400'],
+            'project_id' => ['nullable', 'integer', 'exists:projects,id'],
         ]);
 
         $path = $request->file('csv_file')->store('imports');
 
-        dispatch(new ImportSitesFromCsvJob($path, $linkType));
+        dispatch(new ImportSitesFromCsvJob($path, $linkType, $request->integer('project_id') ?: null));
 
         return response()->json(['message' => 'CSV import started. Sites will appear shortly.']);
     }
