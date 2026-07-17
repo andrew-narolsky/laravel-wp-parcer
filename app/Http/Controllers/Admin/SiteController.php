@@ -68,11 +68,29 @@ class SiteController extends Controller
 
     public function update(UpdateSiteRequest $request, Site $site): RedirectResponse
     {
-        $site->update($request->validated());
+        $data = $request->validated();
+        $data['is_active']          = $request->boolean('is_active');
+        $data['posts_available']    = $this->nullableBoolFromRequest($request, 'posts_available');
+        $data['homepage_available'] = $this->nullableBoolFromRequest($request, 'homepage_available');
 
-        dispatch(new CheckSiteConnectionJob($site));
+        $site->fill($data);
+        $credentialsChanged = $site->isDirty(['url', 'login', 'password']);
+        $site->save();
+
+        if ($credentialsChanged) {
+            dispatch(new CheckSiteConnectionJob($site));
+        }
 
         return redirect()->route('admin.sites.index')->with('success', 'Site updated');
+    }
+
+    private function nullableBoolFromRequest(Request $request, string $field): ?bool
+    {
+        return match ($request->input($field)) {
+            '1'     => true,
+            '0'     => false,
+            default => null,
+        };
     }
 
     public function destroy(Site $site): RedirectResponse

@@ -71,6 +71,76 @@
                             @enderror
                         </div>
 
+                        @php
+                            $toRadioValue = fn ($value) => $value === null ? '' : ($value ? '1' : '0');
+                            $isActiveValue = old('is_active', $toRadioValue($site->is_active));
+                            $postsAvailableValue = old('posts_available', $toRadioValue($site->posts_available));
+                            $homepageAvailableValue = old('homepage_available', $toRadioValue($site->homepage_available));
+                        @endphp
+
+                        <div class="mb-3">
+                            <label class="form-label d-block">Status <span class="text-danger">*</span></label>
+                            <div class="radio-card-group">
+                                <input type="radio" name="is_active" id="is_active_yes" value="1"
+                                       {{ $isActiveValue === '1' ? 'checked' : '' }}>
+                                <label for="is_active_yes">
+                                    <i class="mdi mdi-check-circle-outline"></i> Active
+                                </label>
+
+                                <input type="radio" name="is_active" id="is_active_no" value="0"
+                                       {{ $isActiveValue === '0' ? 'checked' : '' }}>
+                                <label for="is_active_no">
+                                    <i class="mdi mdi-close-circle-outline"></i> Inactive
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label d-block">Posts Available</label>
+                            <div class="radio-card-group">
+                                <input type="radio" name="posts_available" id="posts_available_unknown" value=""
+                                       {{ $postsAvailableValue === '' ? 'checked' : '' }}>
+                                <label for="posts_available_unknown">
+                                    <i class="mdi mdi-help-circle-outline"></i> Unknown
+                                </label>
+
+                                <input type="radio" name="posts_available" id="posts_available_yes" value="1"
+                                       {{ $postsAvailableValue === '1' ? 'checked' : '' }}>
+                                <label for="posts_available_yes">
+                                    <i class="mdi mdi-check-circle-outline"></i> Yes
+                                </label>
+
+                                <input type="radio" name="posts_available" id="posts_available_no" value="0"
+                                       {{ $postsAvailableValue === '0' ? 'checked' : '' }}>
+                                <label for="posts_available_no">
+                                    <i class="mdi mdi-close-circle-outline"></i> No
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label d-block">Homepage Available</label>
+                            <div class="radio-card-group">
+                                <input type="radio" name="homepage_available" id="homepage_available_unknown" value=""
+                                       {{ $homepageAvailableValue === '' ? 'checked' : '' }}>
+                                <label for="homepage_available_unknown">
+                                    <i class="mdi mdi-help-circle-outline"></i> Unknown
+                                </label>
+
+                                <input type="radio" name="homepage_available" id="homepage_available_yes" value="1"
+                                       {{ $homepageAvailableValue === '1' ? 'checked' : '' }}>
+                                <label for="homepage_available_yes">
+                                    <i class="mdi mdi-check-circle-outline"></i> Yes
+                                </label>
+
+                                <input type="radio" name="homepage_available" id="homepage_available_no" value="0"
+                                       {{ $homepageAvailableValue === '0' ? 'checked' : '' }}>
+                                <label for="homepage_available_no">
+                                    <i class="mdi mdi-close-circle-outline"></i> No
+                                </label>
+                            </div>
+                        </div>
+
                         <button type="submit" class="btn btn-gradient-primary">
                             <i class="mdi mdi-content-save"></i> Save
                         </button>
