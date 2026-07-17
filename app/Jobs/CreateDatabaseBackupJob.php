@@ -30,8 +30,9 @@ class CreateDatabaseBackupJob implements ShouldQueue
     {
         // Raw query builder, not the Eloquent models — Site hides `password` from array/JSON
         // serialization, and a backup needs the real column values to be useful for restore.
-        $sites = DB::table('sites')->get()->map(fn ($row) => (array) $row)->all();
-        $links = DB::table('links')->get()->map(fn ($row) => (array) $row)->all();
+        $sites    = DB::table('sites')->get()->map(fn ($row) => (array) $row)->all();
+        $links    = DB::table('links')->get()->map(fn ($row) => (array) $row)->all();
+        $projects = DB::table('projects')->get()->map(fn ($row) => (array) $row)->all();
 
         $filename = 'backup-' . now()->format('Y-m-d-His') . '.json';
 
@@ -39,11 +40,12 @@ class CreateDatabaseBackupJob implements ShouldQueue
             'created_at' => now()->toIso8601String(),
             'sites'      => $sites,
             'links'      => $links,
+            'projects'   => $projects,
         ], JSON_PRETTY_PRINT));
 
-        Log::info('Database backup created', ['filename' => $filename, 'sites' => count($sites), 'links' => count($links)]);
+        Log::info('Database backup created', ['filename' => $filename, 'sites' => count($sites), 'links' => count($links), 'projects' => count($projects)]);
 
-        Notification::send(User::all(), new BackupCreated($filename, count($sites), count($links)));
+        Notification::send(User::all(), new BackupCreated($filename, count($sites), count($links), count($projects)));
     }
 
     public function failed(Throwable $exception): void

@@ -41,13 +41,27 @@ class RestoreDatabaseBackupJob implements ShouldQueue
             throw new RuntimeException("Backup file is malformed: {$this->filename}");
         }
 
+        // `projects` didn't exist in backups taken before links.project_id was added — treat it
+        // as optional so older backup files still restore. When absent, the current `projects`
+        // table is left untouched, which means restored links' project_id values are only safe
+        // if they still happen to match — same caveat this always had for sites/links.
+        $projects = is_array($data['projects'] ?? null) ? $data['projects'] : null;
+
         // DELETE (not TRUNCATE) so the whole thing participates in the transaction and rolls
         // back cleanly on failure instead of leaving the tables half-restored. Children (links)
-        // go before parents (sites) on the way out, parents before children on the way back in
-        // — correct FK order, so there's no need to touch foreign key checks at all.
-        DB::transaction(function () use ($data) {
+        // go before parents (sites, projects) on the way out, parents before children on the way
+        // back in — correct FK order, so there's no need to touch foreign key checks at all.
+        DB::transaction(function () use ($data, $projects) {
             DB::table('links')->delete();
             DB::table('sites')->delete();
+
+            if ($projects !== null) {
+                DB::table('projects')->delete();
+
+                foreach (array_chunk($projects, 500) as $chunk) {
+                    DB::table('projects')->insert($chunk);
+                }
+            }
 
             foreach (array_chunk($data['sites'], 500) as $chunk) {
                 DB::table('sites')->insert($chunk);
@@ -62,9 +76,10 @@ class RestoreDatabaseBackupJob implements ShouldQueue
             'filename' => $this->filename,
             'sites'    => count($data['sites']),
             'links'    => count($data['links']),
+            'projects' => $projects !== null ? count($projects) : null,
         ]);
 
-        Notification::send(User::all(), new BackupRestored($this->filename, count($data['sites']), count($data['links'])));
+        Notification::send(User::all(), new BackupRestored($this->filename, count($data['sites']), count($data['links']), $projects !== null ? count($projects) : 0));
     }
 
     public function failed(Throwable $exception): void

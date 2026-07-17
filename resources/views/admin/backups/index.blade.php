@@ -41,9 +41,9 @@
     </div>
 
     <div class="alert alert-info" role="alert">
-        Backs up only the <strong>sites</strong> and <strong>links</strong> tables. Restoring a
-        backup <strong>replaces</strong> all current sites and links with the backup's snapshot —
-        this cannot be undone automatically.
+        Backs up only the <strong>sites</strong>, <strong>links</strong> and <strong>projects</strong>
+        tables. Restoring a backup <strong>replaces</strong> all current sites, links and projects
+        with the backup's snapshot — this cannot be undone automatically.
     </div>
 
     <div class="row">
@@ -74,7 +74,7 @@
                                             </a>
                                             <form action="{{ route('admin.backups.restore', $backup['filename']) }}" method="POST"
                                                   class="ajax-confirm-form"
-                                                  data-confirm="Restore {{ $backup['filename'] }}? This REPLACES all current sites and links with this backup's snapshot and cannot be undone automatically.">
+                                                  data-confirm="Restore {{ $backup['filename'] }}? This REPLACES all current sites, links and projects with this backup's snapshot and cannot be undone automatically.">
                                                 @csrf
                                                 <button type="submit" class="btn btn-inverse-danger btn-icon me-2" title="Restore">
                                                     <i class="mdi mdi-restore"></i>

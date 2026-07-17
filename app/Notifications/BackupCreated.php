@@ -10,6 +10,7 @@ class BackupCreated extends Notification
         public readonly string $filename,
         public readonly int $sites,
         public readonly int $links,
+        public readonly int $projects,
     ) {}
 
     public function via(object $notifiable): array
@@ -21,7 +22,7 @@ class BackupCreated extends Notification
     {
         return [
             'level'   => 'success',
-            'message' => "Backup created: {$this->filename} ({$this->sites} sites, {$this->links} links).",
+            'message' => "Backup created: {$this->filename} ({$this->sites} sites, {$this->links} links, {$this->projects} projects).",
         ];
     }
 }
