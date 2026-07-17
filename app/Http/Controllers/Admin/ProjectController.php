@@ -27,7 +27,10 @@ class ProjectController extends Controller
         }
 
         $projects = Project::query()
-            ->withCount('links')
+            ->withCount([
+                'links as posts_count'    => fn ($query) => $query->where('type', 'post'),
+                'links as homepage_count' => fn ($query) => $query->where('type', 'homepage'),
+            ])
             ->orderBy(self::SORTABLE[$sort], $direction)
             ->paginate(50)
             ->withQueryString();

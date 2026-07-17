@@ -49,7 +49,8 @@
                                 <tr>
                                     <th>#</th>
                                     @include('admin.partials.sortable-th', ['column' => 'name', 'label' => 'Name'])
-                                    <th>Links</th>
+                                    <th>Posts</th>
+                                    <th>Homepage</th>
                                     @include('admin.partials.sortable-th', ['column' => 'created_at', 'label' => 'Added'])
                                     <th></th>
                                 </tr>
@@ -59,7 +60,8 @@
                                     <tr>
                                         <td>{{ $projects->firstItem() + $loop->index }}</td>
                                         <td>{{ $project->name }}</td>
-                                        <td>{{ $project->links_count }}</td>
+                                        <td>{{ $project->posts_count }}</td>
+                                        <td>{{ $project->homepage_count }}</td>
                                         <td>{{ $project->created_at->format('d.m.Y') }}</td>
                                         <td class="d-flex flex-row justify-content-end">
                                             <a href="{{ route('admin.projects.edit', $project) }}" class="btn btn-inverse-info btn-icon me-2">
@@ -77,7 +79,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted py-4">No projects yet</td>
+                                        <td colspan="6" class="text-center text-muted py-4">No projects yet</td>
                                     </tr>
                                 @endforelse
                             </tbody>
