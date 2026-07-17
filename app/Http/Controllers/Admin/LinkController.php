@@ -14,6 +14,7 @@ use App\Jobs\RemovePublishedPostJob;
 use App\Jobs\RemovePublishedPostsJob;
 use App\Jobs\RepublishUnpublishedLinksJob;
 use App\Models\Link;
+use App\Models\Project;
 use App\Models\Site;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -38,6 +39,7 @@ class LinkController extends Controller
         $sort      = $request->string('sort')->toString();
         $direction = $request->string('direction')->toString() === 'asc' ? 'asc' : 'desc';
         [$type, $status, $checkStatus] = $this->resolveFilters($request);
+        $projectId = $request->integer('project_id') ?: null;
 
         if (!array_key_exists($sort, self::SORTABLE)) {
             $sort = 'created_at';
@@ -46,15 +48,18 @@ class LinkController extends Controller
         $links = Link::query()
             ->leftJoin('sites', 'sites.id', '=', 'links.site_id')
             ->select('links.*')
-            ->with('site')
+            ->with(['site', 'project'])
             ->when($type, fn ($query) => $query->where('links.type', $type))
             ->when($status, fn ($query) => $query->where('links.status', $status))
             ->when($checkStatus, fn ($query) => $query->where('links.check_status', $checkStatus))
+            ->when($projectId, fn ($query) => $query->where('links.project_id', $projectId))
             ->orderBy(self::SORTABLE[$sort], $direction)
             ->paginate(50)
             ->withQueryString();
 
-        return view('admin.links.index', compact('links', 'sort', 'direction', 'type', 'status', 'checkStatus'));
+        $projects = Project::orderBy('name')->get();
+
+        return view('admin.links.index', compact('links', 'sort', 'direction', 'type', 'status', 'checkStatus', 'projectId', 'projects'));
     }
 
     public function create(): View
@@ -66,7 +71,10 @@ class LinkController extends Controller
 
     public function store(StoreLinkRequest $request): RedirectResponse
     {
-        $link = Link::create($request->validated());
+        $data = $request->validated();
+        $data['project_id'] = Project::resolveForUrl($data['url'])?->id;
+
+        $link = Link::create($data);
 
         return redirect()->route('admin.links.edit', $link)->with('success', 'Link added');
     }
@@ -80,7 +88,10 @@ class LinkController extends Controller
 
     public function update(UpdateLinkRequest $request, Link $link): RedirectResponse
     {
-        $link->update($request->validated());
+        $data = $request->validated();
+        $data['project_id'] = Project::resolveForUrl($data['url'])?->id;
+
+        $link->update($data);
 
         return redirect()->route('admin.links.edit', $link)->with('success', 'Link updated');
     }

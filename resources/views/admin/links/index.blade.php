@@ -101,13 +101,28 @@
             </a>
         @endforeach
     </div>
-    <div class="btn-group mb-3" role="group">
+    <div class="btn-group mb-3 me-2" role="group">
         @foreach($checkFilters as $value => $label)
             @php
                 $query = array_merge(request()->except(['check_status', 'page']), $value ? ['check_status' => $value] : []);
             @endphp
             <a href="{{ request()->url() . ($query ? '?' . http_build_query($query) : '') }}"
                class="btn {{ $checkStatus === $value ? 'btn-primary' : 'btn-outline-secondary' }}">
+                {{ $label }}
+            </a>
+        @endforeach
+    </div>
+    @php
+        $projectFilters = ['' => 'All Projects'] + $projects->pluck('name', 'id')->all();
+    @endphp
+    <div class="w-100"></div>
+    <div class="btn-group mb-3" role="group">
+        @foreach($projectFilters as $value => $label)
+            @php
+                $query = array_merge(request()->except(['project_id', 'page']), $value !== '' ? ['project_id' => $value] : []);
+            @endphp
+            <a href="{{ request()->url() . ($query ? '?' . http_build_query($query) : '') }}"
+               class="btn {{ $projectId == $value ? 'btn-primary' : 'btn-outline-secondary' }}">
                 {{ $label }}
             </a>
         @endforeach
@@ -135,6 +150,7 @@
                                 <tr>
                                     <th>#</th>
                                     @include('admin.partials.sortable-th', ['column' => 'site', 'label' => 'Site'])
+                                    <th>Project</th>
                                     @include('admin.partials.sortable-th', ['column' => 'type', 'label' => 'Type'])
                                     @include('admin.partials.sortable-th', ['column' => 'wp_url', 'label' => 'Published URL'])
                                     @include('admin.partials.sortable-th', ['column' => 'status', 'label' => 'Status'])
@@ -149,6 +165,7 @@
                                     <tr>
                                         <td>{{ $links->firstItem() + $loop->index }}</td>
                                         <td><a href="{{ $link->site->url }}" target="_blank">{{ $link->site->name }}</a></td>
+                                        <td>{{ $link->project?->name ?? '—' }}</td>
                                         <td>
                                             @if($link->type === 'post')
                                                 <span class="badge badge-info">In post</span>
@@ -248,7 +265,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted py-4">No links yet</td>
+                                        <td colspan="10" class="text-center text-muted py-4">No links yet</td>
                                     </tr>
                                 @endforelse
                             </tbody>

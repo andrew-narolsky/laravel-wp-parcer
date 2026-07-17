@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Link;
+use App\Models\Project;
 use App\Models\Site;
 use App\Models\User;
 use App\Notifications\ImportFinished;
@@ -23,7 +24,11 @@ class ImportSitesFromCsvJob implements ShouldQueue
 
     public int $timeout = 3600;
 
-    public function __construct(public readonly string $filePath, public readonly string $linkType = 'post') {}
+    public function __construct(
+        public readonly string $filePath,
+        public readonly string $linkType = 'post',
+        public readonly ?int $projectId = null,
+    ) {}
 
     public function handle(): void
     {
@@ -78,6 +83,8 @@ class ImportSitesFromCsvJob implements ShouldQueue
             return;
         }
 
+        $projectId = $this->projectId ?? Project::resolveForUrl($matches[1])?->id;
+
         $link = Link::updateOrCreate(
             [
                 'site_id' => $site->id,
@@ -86,9 +93,10 @@ class ImportSitesFromCsvJob implements ShouldQueue
                 'type'    => $this->linkType,
             ],
             [
-                'title' => $title,
-                'text'  => $description,
-                'image' => trim($data['image'] ?? '') ?: null,
+                'title'      => $title,
+                'text'       => $description,
+                'image'      => trim($data['image'] ?? '') ?: null,
+                'project_id' => $projectId,
             ]
         );
 
