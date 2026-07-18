@@ -35,6 +35,14 @@
                 <a href="{{ route('admin.sites.export', request()->query()) }}" class="btn btn-outline-secondary">
                     <i class="mdi mdi-download me-1"></i> Export CSV
                 </a>
+                <form action="{{ route('admin.sites.refresh_status') }}" method="POST"
+                      class="ajax-confirm-form" data-reload="1500"
+                      data-confirm="Recompute site status, homepage and posts availability from the latest link check results?">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-info">
+                        <i class="mdi mdi-refresh me-1"></i> Update Status
+                    </button>
+                </form>
                 <a href="{{ route('admin.sites.create') }}" class="btn btn-primary">Add Site</a>
             </div>
         </div>
@@ -78,7 +86,7 @@
             </a>
         @endforeach
     </div>
-    <div class="btn-group mb-3" role="group">
+    <div class="btn-group mb-3 me-2" role="group">
         @foreach($availabilityFilters as $value => $label)
             @php
                 $query = array_merge(request()->except(['homepage_available', 'page']), $value ? ['homepage_available' => $value] : []);
@@ -86,6 +94,17 @@
             <a href="{{ request()->url() . ($query ? '?' . http_build_query($query) : '') }}"
                class="btn {{ $homepageAvailable === $value ? 'btn-primary' : 'btn-outline-secondary' }}">
                 Homepage: {{ $label }}
+            </a>
+        @endforeach
+    </div>
+    <div class="btn-group mb-3" role="group">
+        @foreach($availabilityFilters as $value => $label)
+            @php
+                $query = array_merge(request()->except(['is_active', 'page']), $value ? ['is_active' => $value] : []);
+            @endphp
+            <a href="{{ request()->url() . ($query ? '?' . http_build_query($query) : '') }}"
+               class="btn {{ $isActive === $value ? 'btn-primary' : 'btn-outline-secondary' }}">
+                Active: {{ $label }}
             </a>
         @endforeach
     </div>

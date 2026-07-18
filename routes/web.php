@@ -22,6 +22,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
     Route::post('sites/import', [SiteController::class, 'import'])->name('admin.sites.import');
     Route::post('sites/import-homepage', [SiteController::class, 'importHomepage'])->name('admin.sites.import_homepage');
     Route::get('sites/export', [SiteController::class, 'export'])->name('admin.sites.export');
+    Route::post('sites/refresh-status', [SiteController::class, 'refreshStatus'])->name('admin.sites.refresh_status');
     Route::resource('sites', SiteController::class)->names('admin.sites');
     Route::resource('projects', ProjectController::class)->names('admin.projects');
     Route::post('links/analyze', [LinkController::class, 'analyze'])->name('admin.links.analyze');

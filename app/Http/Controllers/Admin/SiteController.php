@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreSiteRequest;
 use App\Http\Requests\Admin\UpdateSiteRequest;
 use App\Jobs\CheckSiteConnectionJob;
 use App\Jobs\ImportSitesFromCsvJob;
+use App\Models\Link;
 use App\Models\Project;
 use App\Models\Site;
 use Illuminate\Contracts\View\View;
@@ -30,7 +31,7 @@ class SiteController extends Controller
     {
         $sort      = $request->string('sort')->toString();
         $direction = $request->string('direction')->toString() === 'asc' ? 'asc' : 'desc';
-        [$postsAvailable, $homepageAvailable] = $this->resolveAvailabilityFilters($request);
+        [$postsAvailable, $homepageAvailable, $isActive] = $this->resolveAvailabilityFilters($request);
 
         if (!array_key_exists($sort, self::SORTABLE)) {
             $sort = 'created_at';
@@ -39,13 +40,14 @@ class SiteController extends Controller
         $sites = Site::query()
             ->when($postsAvailable !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'posts_available', $postsAvailable))
             ->when($homepageAvailable !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'homepage_available', $homepageAvailable))
+            ->when($isActive !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'is_active', $isActive))
             ->orderBy(self::SORTABLE[$sort], $direction)
             ->paginate(50)
             ->withQueryString();
 
         $projects = Project::orderBy('name')->get();
 
-        return view('admin.sites.index', compact('sites', 'sort', 'direction', 'postsAvailable', 'homepageAvailable', 'projects'));
+        return view('admin.sites.index', compact('sites', 'sort', 'direction', 'postsAvailable', 'homepageAvailable', 'isActive', 'projects'));
     }
 
     public function create(): View
@@ -125,13 +127,52 @@ class SiteController extends Controller
         return response()->json(['message' => 'CSV import started. Sites will appear shortly.']);
     }
 
+    public function refreshStatus(): JsonResponse
+    {
+        $upSiteIdsByType = fn (string $type) => Link::query()
+            ->where('type', $type)
+            ->whereIn('check_status', ['alive', 'compromised'])
+            ->pluck('site_id')
+            ->unique();
+
+        $homepageUpSiteIds = $upSiteIdsByType('homepage');
+        $postsUpSiteIds    = $upSiteIdsByType('post');
+        $activeSiteIds     = $homepageUpSiteIds->merge($postsUpSiteIds)->unique();
+
+        Site::query()
+            ->whereIn('id', $homepageUpSiteIds)
+            ->update(['homepage_available' => true]);
+
+        Site::query()
+            ->whereNotIn('id', $homepageUpSiteIds)
+            ->update(['homepage_available' => false]);
+
+        Site::query()
+            ->whereIn('id', $postsUpSiteIds)
+            ->update(['posts_available' => true]);
+
+        Site::query()
+            ->whereNotIn('id', $postsUpSiteIds)
+            ->update(['posts_available' => false]);
+
+        Site::query()
+            ->whereIn('id', $activeSiteIds)
+            ->update(['is_active' => true]);
+
+        Site::query()
+            ->whereNotIn('id', $activeSiteIds)
+            ->update(['is_active' => false]);
+
+        return response()->json(['message' => 'Site statuses updated.']);
+    }
+
     public function export(Request $request): StreamedResponse
     {
-        [$postsAvailable, $homepageAvailable] = $this->resolveAvailabilityFilters($request);
+        [$postsAvailable, $homepageAvailable, $isActive] = $this->resolveAvailabilityFilters($request);
 
         $filename = 'sites-' . now()->format('Y-m-d-His') . '.csv';
 
-        return response()->streamDownload(function () use ($postsAvailable, $homepageAvailable) {
+        return response()->streamDownload(function () use ($postsAvailable, $homepageAvailable, $isActive) {
             $handle = fopen('php://output', 'w');
 
             fputcsv($handle, ['site', 'login', 'password']);
@@ -139,6 +180,7 @@ class SiteController extends Controller
             Site::query()
                 ->when($postsAvailable !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'posts_available', $postsAvailable))
                 ->when($homepageAvailable !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'homepage_available', $homepageAvailable))
+                ->when($isActive !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'is_active', $isActive))
                 ->orderBy('id')
                 ->lazy(500)
                 ->each(function (Site $site) use ($handle) {
@@ -149,15 +191,17 @@ class SiteController extends Controller
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
-    /** @return array{0: string, 1: string} [postsAvailable, homepageAvailable] */
+    /** @return array{0: string, 1: string, 2: string} [postsAvailable, homepageAvailable, isActive] */
     private function resolveAvailabilityFilters(Request $request): array
     {
         $postsAvailable    = $request->string('posts_available')->toString();
         $homepageAvailable = $request->string('homepage_available')->toString();
+        $isActive          = $request->string('is_active')->toString();
 
         return [
             in_array($postsAvailable, ['yes', 'no'], true) ? $postsAvailable : '',
             in_array($homepageAvailable, ['yes', 'no'], true) ? $homepageAvailable : '',
+            in_array($isActive, ['yes', 'no'], true) ? $isActive : '',
         ];
     }
 
