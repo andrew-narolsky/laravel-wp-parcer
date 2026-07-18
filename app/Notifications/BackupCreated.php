@@ -23,6 +23,7 @@ class BackupCreated extends Notification
         return [
             'level'   => 'success',
             'message' => "Backup created: {$this->filename} ({$this->sites} sites, {$this->links} links, {$this->projects} projects).",
+            'reload'  => true,
         ];
     }
 }
