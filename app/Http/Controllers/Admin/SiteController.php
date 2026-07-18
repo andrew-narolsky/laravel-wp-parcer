@@ -31,6 +31,7 @@ class SiteController extends Controller
     {
         $sort      = $request->string('sort')->toString();
         $direction = $request->string('direction')->toString() === 'asc' ? 'asc' : 'desc';
+        $search    = $request->string('search')->toString();
         [$postsAvailable, $homepageAvailable, $isActive] = $this->resolveAvailabilityFilters($request);
 
         if (!array_key_exists($sort, self::SORTABLE)) {
@@ -38,6 +39,7 @@ class SiteController extends Controller
         }
 
         $sites = Site::query()
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', '%' . $search . '%'))
             ->when($postsAvailable !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'posts_available', $postsAvailable))
             ->when($homepageAvailable !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'homepage_available', $homepageAvailable))
             ->when($isActive !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'is_active', $isActive))
@@ -47,7 +49,7 @@ class SiteController extends Controller
 
         $projects = Project::orderBy('name')->get();
 
-        return view('admin.sites.index', compact('sites', 'sort', 'direction', 'postsAvailable', 'homepageAvailable', 'isActive', 'projects'));
+        return view('admin.sites.index', compact('sites', 'sort', 'direction', 'search', 'postsAvailable', 'homepageAvailable', 'isActive', 'projects'));
     }
 
     public function create(): View
@@ -168,16 +170,18 @@ class SiteController extends Controller
 
     public function export(Request $request): StreamedResponse
     {
+        $search = $request->string('search')->toString();
         [$postsAvailable, $homepageAvailable, $isActive] = $this->resolveAvailabilityFilters($request);
 
         $filename = 'sites-' . now()->format('Y-m-d-His') . '.csv';
 
-        return response()->streamDownload(function () use ($postsAvailable, $homepageAvailable, $isActive) {
+        return response()->streamDownload(function () use ($search, $postsAvailable, $homepageAvailable, $isActive) {
             $handle = fopen('php://output', 'w');
 
             fputcsv($handle, ['site', 'login', 'password']);
 
             Site::query()
+                ->when($search !== '', fn ($query) => $query->where('name', 'like', '%' . $search . '%'))
                 ->when($postsAvailable !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'posts_available', $postsAvailable))
                 ->when($homepageAvailable !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'homepage_available', $homepageAvailable))
                 ->when($isActive !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'is_active', $isActive))

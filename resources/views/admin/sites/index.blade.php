@@ -72,6 +72,26 @@
     </div>
     <div class="w-100"></div>
 
+    <form method="GET" class="d-flex align-items-center gap-2 mb-3" style="max-width: 50%;">
+        @foreach(request()->except(['search', 'page']) as $key => $value)
+            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+        @endforeach
+        <input type="text" name="search" value="{{ $search }}" class="form-control"
+               placeholder="Search by domain...">
+        <button type="submit" class="btn btn-outline-primary">
+            <i class="mdi mdi-magnify"></i>
+        </button>
+        @if($search !== '')
+            @php
+                $clearQuery = request()->except(['search', 'page']);
+            @endphp
+            <a href="{{ request()->url() . ($clearQuery ? '?' . http_build_query($clearQuery) : '') }}"
+               class="btn btn-outline-secondary">
+                <i class="mdi mdi-close"></i>
+            </a>
+        @endif
+    </form>
+
     @php
         $availabilityFilters = ['' => 'All', 'yes' => 'Yes', 'no' => 'No'];
     @endphp
