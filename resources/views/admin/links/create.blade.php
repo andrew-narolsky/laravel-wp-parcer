@@ -108,9 +108,17 @@
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label">Article text <span class="text-danger">*</span></label>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0">Article text <span class="text-danger">*</span></label>
+                                <button type="button" id="toggle-code-view" class="btn btn-sm btn-outline-secondary">
+                                    <i class="mdi mdi-code-tags"></i> View code
+                                </button>
+                            </div>
                             <input type="hidden" name="text" id="text-input">
-                            <div id="quill-editor" style="height: 320px;"></div>
+                            <div id="quill-wrapper">
+                                <div id="quill-editor" style="height: 320px;"></div>
+                            </div>
+                            <textarea id="html-source" class="form-control d-none" rows="14" style="font-family: monospace; font-size: 0.85rem;"></textarea>
                             @error('text')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
@@ -151,6 +159,32 @@
 
         quill.on('text-change', function () {
             document.getElementById('text-input').value = quill.root.innerHTML;
+        });
+
+        const codeToggleBtn = document.getElementById('toggle-code-view');
+        const htmlSource = document.getElementById('html-source');
+        const quillWrapper = document.getElementById('quill-wrapper');
+        const textInput = document.getElementById('text-input');
+        let codeViewActive = false;
+
+        codeToggleBtn.addEventListener('click', function () {
+            if (!codeViewActive) {
+                htmlSource.value = textInput.value;
+                quillWrapper.classList.add('d-none');
+                htmlSource.classList.remove('d-none');
+                codeToggleBtn.innerHTML = '<i class="mdi mdi-eye-outline"></i> Visual editor';
+            } else {
+                textInput.value = htmlSource.value;
+                quill.setContents(quill.clipboard.convert(htmlSource.value));
+                quillWrapper.classList.remove('d-none');
+                htmlSource.classList.add('d-none');
+                codeToggleBtn.innerHTML = '<i class="mdi mdi-code-tags"></i> View code';
+            }
+            codeViewActive = !codeViewActive;
+        });
+
+        htmlSource.addEventListener('input', function () {
+            textInput.value = htmlSource.value;
         });
     </script>
 @endsection

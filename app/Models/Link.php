@@ -16,6 +16,13 @@ class Link extends Model
         'checked_at' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (Link $link) {
+            $link->text_checksum = hash('sha256', $link->text ?? '');
+        });
+    }
+
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);

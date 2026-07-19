@@ -87,10 +87,11 @@ class ImportSitesFromCsvJob implements ShouldQueue
 
         $link = Link::updateOrCreate(
             [
-                'site_id' => $site->id,
-                'url'     => $matches[1],
-                'anchor'  => trim(strip_tags($matches[2])),
-                'type'    => $this->linkType,
+                'site_id'       => $site->id,
+                'url'           => $matches[1],
+                'anchor'        => trim(strip_tags($matches[2])),
+                'type'          => $this->linkType,
+                'text_checksum' => hash('sha256', $description),
             ],
             [
                 'title'      => $title,
