@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreSiteRequest;
 use App\Http\Requests\Admin\UpdateSiteRequest;
 use App\Jobs\CheckSiteConnectionJob;
 use App\Jobs\ImportSitesFromCsvJob;
+use App\Jobs\ReplaceHomepageContentJob;
 use App\Models\Link;
 use App\Models\Project;
 use App\Models\Site;
@@ -87,6 +88,13 @@ class SiteController extends Controller
         }
 
         return redirect()->route('admin.sites.index')->with('success', 'Site updated');
+    }
+
+    public function replaceContent(Site $site): JsonResponse
+    {
+        dispatch(new ReplaceHomepageContentJob($site, (string) $site->homepage_content));
+
+        return response()->json(['message' => 'Queued for content replacement.']);
     }
 
     private function nullableBoolFromRequest(Request $request, string $field): ?bool

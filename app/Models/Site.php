@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Site extends Model
 {
-    protected $fillable = ['name', 'url', 'login', 'password', 'is_active', 'posts_available', 'homepage_available'];
+    protected $fillable = ['name', 'url', 'login', 'password', 'is_active', 'posts_available', 'homepage_available', 'homepage_content'];
 
     protected $hidden = ['password'];
 

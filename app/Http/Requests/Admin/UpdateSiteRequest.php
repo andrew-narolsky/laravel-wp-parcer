@@ -25,10 +25,11 @@ class UpdateSiteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'     => 'required|string|max:255',
-            'url'      => 'required|url|max:255',
-            'login'    => 'required|string|max:255',
-            'password' => 'nullable|string|max:255',
+            'name'             => 'required|string|max:255',
+            'url'              => 'required|url|max:255',
+            'login'            => 'required|string|max:255',
+            'password'         => 'nullable|string|max:255',
+            'homepage_content' => 'nullable|string',
         ];
     }
 }

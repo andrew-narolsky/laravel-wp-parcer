@@ -2,6 +2,10 @@
 
 @section('title', 'Edit Site')
 
+@section('styles')
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+@endsection
+
 @section('content')
     <div class="page-header mb-3">
         <div class="title-wrapper mb-2">
@@ -11,6 +15,15 @@
                         <i class="mdi mdi-web menu-icon"></i>
                     </span> Edit site
                 </h3>
+            </div>
+            <div class="col-auto ms-auto text-end mt-n1">
+                <form action="{{ route('admin.sites.replace_content', $site) }}" method="POST" class="d-inline ajax-quiet-form">
+                    @csrf
+                    <button type="submit" class="btn btn-primary"
+                            @if(!$site->homepage_content) disabled title="Fill in and save homepage content first" @endif>
+                        <i class="mdi mdi-file-replace-outline"></i> Replace content
+                    </button>
+                </form>
             </div>
         </div>
         <nav aria-label="breadcrumb">
@@ -69,6 +82,24 @@
                             @error('password')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0">Homepage content</label>
+                                <button type="button" id="toggle-code-view" class="btn btn-sm btn-outline-secondary">
+                                    <i class="mdi mdi-code-tags"></i> View code
+                                </button>
+                            </div>
+                            <input type="hidden" name="homepage_content" id="text-input">
+                            <div id="quill-wrapper">
+                                <div id="quill-editor" style="height: 320px;"></div>
+                            </div>
+                            <textarea id="html-source" class="form-control d-none" rows="14" style="font-family: monospace; font-size: 0.85rem;"></textarea>
+                            @error('homepage_content')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">Mirrors what's currently live on the site's homepage — updated automatically by the "Replace content" action.</div>
                         </div>
 
                         @php
@@ -150,4 +181,56 @@
         </div>
     </div>
 
+@endsection
+
+@section('js')
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+    <script>
+        const quill = new Quill('#quill-editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline'],
+                    [{ 'header': [2, 3, false] }],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['link'],
+                    ['clean'],
+                ],
+            },
+        });
+
+        const initialText = {!! json_encode(old('homepage_content', $site->homepage_content)) !!};
+        quill.clipboard.dangerouslyPasteHTML(initialText);
+        document.getElementById('text-input').value = initialText;
+
+        quill.on('text-change', function () {
+            document.getElementById('text-input').value = quill.root.innerHTML;
+        });
+
+        const codeToggleBtn = document.getElementById('toggle-code-view');
+        const htmlSource = document.getElementById('html-source');
+        const quillWrapper = document.getElementById('quill-wrapper');
+        const textInput = document.getElementById('text-input');
+        let codeViewActive = false;
+
+        codeToggleBtn.addEventListener('click', function () {
+            if (!codeViewActive) {
+                htmlSource.value = textInput.value;
+                quillWrapper.classList.add('d-none');
+                htmlSource.classList.remove('d-none');
+                codeToggleBtn.innerHTML = '<i class="mdi mdi-eye-outline"></i> Visual editor';
+            } else {
+                textInput.value = htmlSource.value;
+                quill.setContents(quill.clipboard.convert(htmlSource.value));
+                quillWrapper.classList.remove('d-none');
+                htmlSource.classList.add('d-none');
+                codeToggleBtn.innerHTML = '<i class="mdi mdi-code-tags"></i> View code';
+            }
+            codeViewActive = !codeViewActive;
+        });
+
+        htmlSource.addEventListener('input', function () {
+            textInput.value = htmlSource.value;
+        });
+    </script>
 @endsection
