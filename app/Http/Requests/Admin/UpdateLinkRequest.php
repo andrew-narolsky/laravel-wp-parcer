@@ -18,6 +18,7 @@ class UpdateLinkRequest extends FormRequest
             'site_id' => ['required', Rule::exists('sites', 'id')->where('is_active', true)],
             'title'   => 'nullable|string|max:255',
             'url'     => 'required|string|max:255',
+            'wp_url'  => 'nullable|string|max:255',
             'anchor'  => 'required|string|max:255',
             'text'    => 'required|string',
             'type'    => 'required|in:post,homepage',

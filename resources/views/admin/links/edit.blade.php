@@ -89,11 +89,14 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label d-block">Published URL</label>
+                            <label class="form-label">Published URL</label>
+                            <input type="text" name="wp_url" class="form-control @error('wp_url') is-invalid @enderror"
+                                   value="{{ old('wp_url', $link->wp_url) }}" placeholder="https://example.com/published-page">
+                            @error('wp_url')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             @if($link->wp_url)
-                                <a href="{{ $link->wp_url }}" target="_blank" rel="noopener">{{ $link->wp_url }}</a>
-                            @else
-                                <span class="text-muted">— not published yet —</span>
+                                <div class="form-text"><a href="{{ $link->wp_url }}" target="_blank" rel="noopener">Open link</a></div>
                             @endif
                         </div>
 
