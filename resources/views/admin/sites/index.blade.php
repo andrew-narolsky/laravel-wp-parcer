@@ -117,7 +117,7 @@
             </a>
         @endforeach
     </div>
-    <div class="btn-group mb-3" role="group">
+    <div class="btn-group mb-3 me-2" role="group">
         @foreach($availabilityFilters as $value => $label)
             @php
                 $query = array_merge(request()->except(['is_active', 'page']), $value ? ['is_active' => $value] : []);
@@ -125,6 +125,17 @@
             <a href="{{ request()->url() . ($query ? '?' . http_build_query($query) : '') }}"
                class="btn {{ $isActive === $value ? 'btn-primary' : 'btn-outline-secondary' }}">
                 Active: {{ $label }}
+            </a>
+        @endforeach
+    </div>
+    <div class="btn-group mb-3" role="group">
+        @foreach($availabilityFilters as $value => $label)
+            @php
+                $query = array_merge(request()->except(['is_auto', 'page']), $value ? ['is_auto' => $value] : []);
+            @endphp
+            <a href="{{ request()->url() . ($query ? '?' . http_build_query($query) : '') }}"
+               class="btn {{ $isAuto === $value ? 'btn-primary' : 'btn-outline-secondary' }}">
+                Mode: {{ $value === 'yes' ? 'Auto' : ($value === 'no' ? 'Manual' : $label) }}
             </a>
         @endforeach
     </div>
@@ -154,6 +165,7 @@
                                     @include('admin.partials.sortable-th', ['column' => 'url', 'label' => 'URL'])
                                     <th>Login</th>
                                     @include('admin.partials.sortable-th', ['column' => 'is_active', 'label' => 'Status'])
+                                    @include('admin.partials.sortable-th', ['column' => 'is_auto', 'label' => 'Mode'])
                                     @include('admin.partials.sortable-th', ['column' => 'posts_available', 'label' => 'Posts'])
                                     @include('admin.partials.sortable-th', ['column' => 'homepage_available', 'label' => 'Homepage'])
                                     @include('admin.partials.sortable-th', ['column' => 'created_at', 'label' => 'Added'])
@@ -176,6 +188,15 @@
                                                 <span class="badge badge-success">Active</span>
                                             @else
                                                 <span class="badge badge-danger">Inactive</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(is_null($site->is_auto))
+                                                <span class="badge badge-secondary">Unknown</span>
+                                            @elseif($site->is_auto)
+                                                <span class="badge badge-success">Auto</span>
+                                            @else
+                                                <span class="badge badge-danger">Manual</span>
                                             @endif
                                         </td>
                                         <td>
@@ -215,7 +236,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted py-4">No sites yet</td>
+                                        <td colspan="10" class="text-center text-muted py-4">No sites yet</td>
                                     </tr>
                                 @endforelse
                             </tbody>

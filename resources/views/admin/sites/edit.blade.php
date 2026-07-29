@@ -105,6 +105,7 @@
                         @php
                             $toRadioValue = fn ($value) => $value === null ? '' : ($value ? '1' : '0');
                             $isActiveValue = old('is_active', $toRadioValue($site->is_active));
+                            $isAutoValue = old('is_auto', $toRadioValue($site->is_auto));
                             $postsAvailableValue = old('posts_available', $toRadioValue($site->posts_available));
                             $homepageAvailableValue = old('homepage_available', $toRadioValue($site->homepage_available));
                         @endphp
@@ -122,6 +123,29 @@
                                        {{ $isActiveValue === '0' ? 'checked' : '' }}>
                                 <label for="is_active_no">
                                     <i class="mdi mdi-close-circle-outline"></i> Inactive
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label d-block">Mode</label>
+                            <div class="radio-card-group">
+                                <input type="radio" name="is_auto" id="is_auto_unknown" value=""
+                                       {{ $isAutoValue === '' ? 'checked' : '' }}>
+                                <label for="is_auto_unknown">
+                                    <i class="mdi mdi-help-circle-outline"></i> Unknown
+                                </label>
+
+                                <input type="radio" name="is_auto" id="is_auto_yes" value="1"
+                                       {{ $isAutoValue === '1' ? 'checked' : '' }}>
+                                <label for="is_auto_yes">
+                                    <i class="mdi mdi-check-circle-outline"></i> Auto
+                                </label>
+
+                                <input type="radio" name="is_auto" id="is_auto_no" value="0"
+                                       {{ $isAutoValue === '0' ? 'checked' : '' }}>
+                                <label for="is_auto_no">
+                                    <i class="mdi mdi-close-circle-outline"></i> Manual
                                 </label>
                             </div>
                         </div>

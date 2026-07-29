@@ -23,6 +23,7 @@ class SiteController extends Controller
         'name'               => 'name',
         'url'                => 'url',
         'is_active'          => 'is_active',
+        'is_auto'            => 'is_auto',
         'posts_available'    => 'posts_available',
         'homepage_available' => 'homepage_available',
         'created_at'         => 'created_at',
@@ -33,7 +34,7 @@ class SiteController extends Controller
         $sort      = $request->string('sort')->toString();
         $direction = $request->string('direction')->toString() === 'asc' ? 'asc' : 'desc';
         $search    = $request->string('search')->toString();
-        [$postsAvailable, $homepageAvailable, $isActive] = $this->resolveAvailabilityFilters($request);
+        [$postsAvailable, $homepageAvailable, $isActive, $isAuto] = $this->resolveAvailabilityFilters($request);
 
         if (!array_key_exists($sort, self::SORTABLE)) {
             $sort = 'created_at';
@@ -44,13 +45,14 @@ class SiteController extends Controller
             ->when($postsAvailable !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'posts_available', $postsAvailable))
             ->when($homepageAvailable !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'homepage_available', $homepageAvailable))
             ->when($isActive !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'is_active', $isActive))
+            ->when($isAuto !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'is_auto', $isAuto))
             ->orderBy(self::SORTABLE[$sort], $direction)
             ->paginate(50)
             ->withQueryString();
 
         $projects = Project::orderBy('name')->get();
 
-        return view('admin.sites.index', compact('sites', 'sort', 'direction', 'search', 'postsAvailable', 'homepageAvailable', 'isActive', 'projects'));
+        return view('admin.sites.index', compact('sites', 'sort', 'direction', 'search', 'postsAvailable', 'homepageAvailable', 'isActive', 'isAuto', 'projects'));
     }
 
     public function create(): View
@@ -76,6 +78,7 @@ class SiteController extends Controller
     {
         $data = $request->validated();
         $data['is_active']          = $request->boolean('is_active');
+        $data['is_auto']            = $this->nullableBoolFromRequest($request, 'is_auto');
         $data['posts_available']    = $this->nullableBoolFromRequest($request, 'posts_available');
         $data['homepage_available'] = $this->nullableBoolFromRequest($request, 'homepage_available');
 
@@ -87,7 +90,7 @@ class SiteController extends Controller
             dispatch(new CheckSiteConnectionJob($site));
         }
 
-        return redirect()->route('admin.sites.index')->with('success', 'Site updated');
+        return redirect()->route('admin.sites.edit', $site)->with('success', 'Site updated');
     }
 
     public function replaceContent(Site $site): JsonResponse
@@ -179,11 +182,11 @@ class SiteController extends Controller
     public function export(Request $request): StreamedResponse
     {
         $search = $request->string('search')->toString();
-        [$postsAvailable, $homepageAvailable, $isActive] = $this->resolveAvailabilityFilters($request);
+        [$postsAvailable, $homepageAvailable, $isActive, $isAuto] = $this->resolveAvailabilityFilters($request);
 
         $filename = 'sites-' . now()->format('Y-m-d-His') . '.csv';
 
-        return response()->streamDownload(function () use ($search, $postsAvailable, $homepageAvailable, $isActive) {
+        return response()->streamDownload(function () use ($search, $postsAvailable, $homepageAvailable, $isActive, $isAuto) {
             $handle = fopen('php://output', 'w');
 
             fputcsv($handle, ['site', 'login', 'password']);
@@ -193,6 +196,7 @@ class SiteController extends Controller
                 ->when($postsAvailable !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'posts_available', $postsAvailable))
                 ->when($homepageAvailable !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'homepage_available', $homepageAvailable))
                 ->when($isActive !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'is_active', $isActive))
+                ->when($isAuto !== '', fn ($query) => $this->applyAvailabilityFilter($query, 'is_auto', $isAuto))
                 ->orderBy('id')
                 ->lazy(500)
                 ->each(function (Site $site) use ($handle) {
@@ -203,17 +207,19 @@ class SiteController extends Controller
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
-    /** @return array{0: string, 1: string, 2: string} [postsAvailable, homepageAvailable, isActive] */
+    /** @return array{0: string, 1: string, 2: string, 3: string} [postsAvailable, homepageAvailable, isActive, isAuto] */
     private function resolveAvailabilityFilters(Request $request): array
     {
         $postsAvailable    = $request->string('posts_available')->toString();
         $homepageAvailable = $request->string('homepage_available')->toString();
         $isActive          = $request->string('is_active')->toString();
+        $isAuto            = $request->string('is_auto')->toString();
 
         return [
             in_array($postsAvailable, ['yes', 'no'], true) ? $postsAvailable : '',
             in_array($homepageAvailable, ['yes', 'no'], true) ? $homepageAvailable : '',
             in_array($isActive, ['yes', 'no'], true) ? $isActive : '',
+            in_array($isAuto, ['yes', 'no'], true) ? $isAuto : '',
         ];
     }
 

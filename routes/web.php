@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Admin\BackupController;
-use App\Http\Controllers\Admin\ContentReplaceController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LinkController;
 use App\Http\Controllers\Admin\NotificationController;
@@ -38,9 +37,6 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
     Route::post('links/{link}/check', [LinkController::class, 'check'])->name('admin.links.check');
     Route::post('links/{link}/remove-post', [LinkController::class, 'removeLinkPost'])->name('admin.links.remove_link_post');
     Route::post('links/{link}/remove-homepage-content', [LinkController::class, 'removeLinkHomepageContent'])->name('admin.links.remove_link_homepage_content');
-
-    Route::get('content-replace', [ContentReplaceController::class, 'create'])->name('admin.content_replace.create');
-    Route::post('content-replace', [ContentReplaceController::class, 'store'])->name('admin.content_replace.store');
 
     Route::get('backups', [BackupController::class, 'index'])->name('admin.backups.index');
     Route::post('backups', [BackupController::class, 'store'])->name('admin.backups.store');

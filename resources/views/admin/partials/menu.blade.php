@@ -26,12 +26,6 @@
             <i class="mdi mdi-link menu-icon"></i>
         </a>
     </li>
-    <li class="nav-item @ifroute('admin.content_replace.*') active @endifroute">
-        <a class="nav-link" href="{{ route('admin.content_replace.create') }}">
-            <span class="menu-title">Replace content</span>
-            <i class="mdi mdi-file-replace-outline menu-icon"></i>
-        </a>
-    </li>
     <li class="nav-item @ifroute('admin.backups.*') active @endifroute">
         <a class="nav-link" href="{{ route('admin.backups.index') }}">
             <span class="menu-title">Backups</span>
