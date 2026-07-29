@@ -11,11 +11,14 @@ use App\Jobs\ReplaceHomepageContentJob;
 use App\Models\Link;
 use App\Models\Project;
 use App\Models\Site;
+use App\Services\Publishers\HomepagePublisher;
+use App\Services\WordPressXmlRpcClient;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 
 class SiteController extends Controller
 {
@@ -98,6 +101,27 @@ class SiteController extends Controller
         dispatch(new ReplaceHomepageContentJob($site, (string) $site->homepage_content));
 
         return response()->json(['message' => 'Queued for content replacement.']);
+    }
+
+    public function fetchHomepageContent(Site $site, HomepagePublisher $homepagePublisher): JsonResponse
+    {
+        try {
+            $postId = $homepagePublisher->findFrontPageId($site);
+
+            $post = WordPressXmlRpcClient::call($site, 'wp.getPost', [
+                0,
+                $site->login,
+                $site->password,
+                $postId,
+                ['post_content'],
+            ]);
+        } catch (Throwable $e) {
+            return response()->json(['message' => 'Could not fetch homepage content: ' . $e->getMessage()], 422);
+        }
+
+        $site->update(['homepage_content' => (string) ($post['post_content'] ?? '')]);
+
+        return response()->json(['message' => 'Homepage content fetched from the site.']);
     }
 
     private function nullableBoolFromRequest(Request $request, string $field): ?bool

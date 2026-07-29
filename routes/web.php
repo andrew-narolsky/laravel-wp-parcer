@@ -26,6 +26,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
     Route::post('sites/refresh-status', [SiteController::class, 'refreshStatus'])->name('admin.sites.refresh_status');
     Route::resource('sites', SiteController::class)->names('admin.sites');
     Route::post('sites/{site}/replace-content', [SiteController::class, 'replaceContent'])->name('admin.sites.replace_content');
+    Route::post('sites/{site}/fetch-homepage-content', [SiteController::class, 'fetchHomepageContent'])->name('admin.sites.fetch_homepage_content');
     Route::resource('projects', ProjectController::class)->names('admin.projects');
     Route::post('links/analyze', [LinkController::class, 'analyze'])->name('admin.links.analyze');
     Route::get('links/export', [LinkController::class, 'export'])->name('admin.links.export');

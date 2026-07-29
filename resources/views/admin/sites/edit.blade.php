@@ -17,6 +17,13 @@
                 </h3>
             </div>
             <div class="col-auto ms-auto text-end mt-n1">
+                <form action="{{ route('admin.sites.fetch_homepage_content', $site) }}" method="POST"
+                      class="d-inline ajax-quiet-form" data-reload="1200">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-secondary me-2">
+                        <i class="mdi mdi-cloud-download-outline"></i> Fetch current content
+                    </button>
+                </form>
                 <form action="{{ route('admin.sites.replace_content', $site) }}" method="POST" class="d-inline ajax-quiet-form">
                     @csrf
                     <button type="submit" class="btn btn-primary"
