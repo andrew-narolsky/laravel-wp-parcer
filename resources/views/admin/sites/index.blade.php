@@ -35,6 +35,9 @@
                 <a href="{{ route('admin.sites.export', request()->query()) }}" class="btn btn-outline-secondary">
                     <i class="mdi mdi-download me-1"></i> Export CSV
                 </a>
+                <a href="{{ route('admin.sites.export_link_content') }}" class="btn btn-outline-secondary">
+                    <i class="mdi mdi-code-tags me-1"></i> Export Link Content
+                </a>
                 <form action="{{ route('admin.sites.refresh_status') }}" method="POST"
                       class="ajax-confirm-form" data-reload="1500"
                       data-confirm="Recompute site status, homepage and posts availability from the latest link check results?">
@@ -128,14 +131,17 @@
             </a>
         @endforeach
     </div>
+    @php
+        $modeFilters = ['' => 'All', 'yes' => 'Auto', 'no' => 'Manual', 'unknown' => 'Unknown'];
+    @endphp
     <div class="btn-group mb-3" role="group">
-        @foreach($availabilityFilters as $value => $label)
+        @foreach($modeFilters as $value => $label)
             @php
                 $query = array_merge(request()->except(['is_auto', 'page']), $value ? ['is_auto' => $value] : []);
             @endphp
             <a href="{{ request()->url() . ($query ? '?' . http_build_query($query) : '') }}"
                class="btn {{ $isAuto === $value ? 'btn-primary' : 'btn-outline-secondary' }}">
-                Mode: {{ $value === 'yes' ? 'Auto' : ($value === 'no' ? 'Manual' : $label) }}
+                Mode: {{ $label }}
             </a>
         @endforeach
     </div>

@@ -207,6 +207,44 @@ class SiteController extends Controller
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
+    public function exportLinkContent(): StreamedResponse
+    {
+        $filename = 'link-content-' . now()->format('Y-m-d-His') . '.json';
+
+        $data = Link::query()
+            ->where('type', 'homepage')
+            ->whereNotNull('project_id')
+            ->whereNotNull('text')
+            ->where('text', '!=', '')
+            ->with(['site', 'project'])
+            ->get()
+            ->filter(fn (Link $link) => $link->site && $link->project)
+            ->groupBy('site_id')
+            ->map(function ($siteLinks) {
+                $projects = $siteLinks
+                    ->groupBy('project_id')
+                    ->map(function ($projectLinks) {
+                        $latest = $projectLinks->sortByDesc('id')->first();
+
+                        return [
+                            'project' => $latest->project->name,
+                            'content' => $latest->text,
+                        ];
+                    })
+                    ->values();
+
+                return [
+                    'domain'   => $siteLinks->first()->site->name,
+                    'projects' => $projects,
+                ];
+            })
+            ->values();
+
+        return response()->streamDownload(function () use ($data) {
+            echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        }, $filename, ['Content-Type' => 'application/json']);
+    }
+
     /** @return array{0: string, 1: string, 2: string, 3: string} [postsAvailable, homepageAvailable, isActive, isAuto] */
     private function resolveAvailabilityFilters(Request $request): array
     {
@@ -219,15 +257,16 @@ class SiteController extends Controller
             in_array($postsAvailable, ['yes', 'no'], true) ? $postsAvailable : '',
             in_array($homepageAvailable, ['yes', 'no'], true) ? $homepageAvailable : '',
             in_array($isActive, ['yes', 'no'], true) ? $isActive : '',
-            in_array($isAuto, ['yes', 'no'], true) ? $isAuto : '',
+            in_array($isAuto, ['yes', 'no', 'unknown'], true) ? $isAuto : '',
         ];
     }
 
     private function applyAvailabilityFilter($query, string $column, string $value): void
     {
         match ($value) {
-            'yes' => $query->where($column, true),
-            'no'  => $query->where($column, false),
+            'yes'     => $query->where($column, true),
+            'no'      => $query->where($column, false),
+            'unknown' => $query->whereNull($column),
         };
     }
 }
