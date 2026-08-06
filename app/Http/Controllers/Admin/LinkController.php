@@ -175,10 +175,11 @@ class LinkController extends Controller
     public function export(Request $request): StreamedResponse
     {
         [$type, $status, $checkStatus] = $this->resolveFilters($request);
+        $projectId = $request->integer('project_id') ?: null;
 
         $filename = 'links-' . now()->format('Y-m-d-His') . '.csv';
 
-        return response()->streamDownload(function () use ($type, $status, $checkStatus) {
+        return response()->streamDownload(function () use ($type, $status, $checkStatus, $projectId) {
             $handle = fopen('php://output', 'w');
 
             fputcsv($handle, ['id', 'site', 'title', 'url', 'wp_url', 'anchor', 'text', 'image', 'type', 'status', 'failed_reason', 'check_status', 'check_error', 'checked_at']);
@@ -187,6 +188,7 @@ class LinkController extends Controller
                 ->when($type, fn ($query) => $query->where('type', $type))
                 ->when($status, fn ($query) => $query->where('status', $status))
                 ->when($checkStatus, fn ($query) => $query->where('check_status', $checkStatus))
+                ->when($projectId, fn ($query) => $query->where('project_id', $projectId))
                 ->orderBy('id')
                 ->lazy(500)
                 ->each(function (Link $link) use ($handle) {

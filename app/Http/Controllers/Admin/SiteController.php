@@ -231,42 +231,48 @@ class SiteController extends Controller
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
-    public function exportLinkContent(): StreamedResponse
+    public function exportLinkContent(Request $request): StreamedResponse
     {
-        $filename = 'link-content-' . now()->format('Y-m-d-His') . '.json';
+        $search = $request->string('search')->toString();
+        [$postsAvailable, $homepageAvailable, $isActive, $isAuto] = $this->resolveAvailabilityFilters($request);
 
-        $data = Link::query()
+        $filename = 'link-content-' . now()->format('Y-m-d-His') . '.html';
+
+        $sites = Link::query()
             ->where('type', 'homepage')
             ->whereNotNull('project_id')
             ->whereNotNull('text')
             ->where('text', '!=', '')
+            ->whereHas('site', function ($query) use ($search, $postsAvailable, $homepageAvailable, $isActive, $isAuto) {
+                $query
+                    ->when($search !== '', fn ($q) => $q->where('name', 'like', '%' . $search . '%'))
+                    ->when($postsAvailable !== '', fn ($q) => $this->applyAvailabilityFilter($q, 'posts_available', $postsAvailable))
+                    ->when($homepageAvailable !== '', fn ($q) => $this->applyAvailabilityFilter($q, 'homepage_available', $homepageAvailable))
+                    ->when($isActive !== '', fn ($q) => $this->applyAvailabilityFilter($q, 'is_active', $isActive))
+                    ->when($isAuto !== '', fn ($q) => $this->applyAvailabilityFilter($q, 'is_auto', $isAuto));
+            })
             ->with(['site', 'project'])
             ->get()
             ->filter(fn (Link $link) => $link->site && $link->project)
             ->groupBy('site_id')
             ->map(function ($siteLinks) {
-                $projects = $siteLinks
+                $contents = $siteLinks
                     ->groupBy('project_id')
-                    ->map(function ($projectLinks) {
-                        $latest = $projectLinks->sortByDesc('id')->first();
-
-                        return [
-                            'project' => $latest->project->name,
-                            'content' => $latest->text,
-                        ];
-                    })
+                    ->map(fn ($projectLinks) => $projectLinks->sortByDesc('id')->first()->text)
                     ->values();
 
                 return [
                     'domain'   => $siteLinks->first()->site->name,
-                    'projects' => $projects,
+                    'contents' => $contents,
                 ];
             })
             ->values();
 
-        return response()->streamDownload(function () use ($data) {
-            echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        }, $filename, ['Content-Type' => 'application/json']);
+        return response()->streamDownload(function () use ($sites) {
+            echo $sites
+                ->map(fn ($site) => '<h1>' . e($site['domain']) . "</h1>\n" . $site['contents']->implode("\n"))
+                ->implode("\n---\n");
+        }, $filename, ['Content-Type' => 'text/html']);
     }
 
     /** @return array{0: string, 1: string, 2: string, 3: string} [postsAvailable, homepageAvailable, isActive, isAuto] */

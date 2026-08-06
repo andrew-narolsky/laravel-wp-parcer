@@ -35,7 +35,7 @@
                 <a href="{{ route('admin.sites.export', request()->query()) }}" class="btn btn-outline-secondary">
                     <i class="mdi mdi-download me-1"></i> Export CSV
                 </a>
-                <a href="{{ route('admin.sites.export_link_content') }}" class="btn btn-outline-secondary">
+                <a href="{{ route('admin.sites.export_link_content', request()->query()) }}" class="btn btn-outline-secondary">
                     <i class="mdi mdi-code-tags me-1"></i> Export Link Content
                 </a>
                 <form action="{{ route('admin.sites.refresh_status') }}" method="POST"

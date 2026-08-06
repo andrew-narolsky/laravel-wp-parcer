@@ -116,7 +116,7 @@
         $projectFilters = ['' => 'All Projects'] + $projects->pluck('name', 'id')->all();
     @endphp
     <div class="w-100"></div>
-    <div class="btn-group mb-3" role="group">
+    <div class="btn-group flex-wrap mb-3" role="group">
         @foreach($projectFilters as $value => $label)
             @php
                 $query = array_merge(request()->except(['project_id', 'page']), $value !== '' ? ['project_id' => $value] : []);
