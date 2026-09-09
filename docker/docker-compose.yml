@@ -56,8 +56,6 @@ services:
       volumes:
         - ${DATA_SAVE_PATH}/mariadb:/var/lib/mysql
       container_name: ${PROJECT_NAME}-mariadb
-      ports:
-        - "${MARIADB_PORT}:3306"
       environment:
         - MYSQL_DATABASE=${MARIADB_DATABASE}
         - MYSQL_USER=${MARIADB_USER}
@@ -78,8 +76,6 @@ services:
       image: memcached:latest
       restart: unless-stopped
       container_name: ${PROJECT_NAME}-memcached
-      ports:
-        - "11211:11211"
       networks:
         - app-network
 
