@@ -28,6 +28,14 @@
                         <i class="mdi mdi-magnify me-1"></i> Analyze
                     </button>
                 </form>
+                <form action="{{ route('admin.links.verify_failed') }}" method="POST"
+                      class="ajax-confirm-form"
+                      data-confirm="Check all failed links to see if they were actually published despite the recorded error?">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-success">
+                        <i class="mdi mdi-cloud-search-outline me-1"></i> Verify Failed
+                    </button>
+                </form>
                 <a href="{{ route('admin.links.export', request()->query()) }}" class="btn btn-outline-secondary">
                     <i class="mdi mdi-download me-1"></i> Export CSV
                 </a>

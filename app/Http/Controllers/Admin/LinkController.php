@@ -13,6 +13,7 @@ use App\Jobs\RemoveHomepageLinkJob;
 use App\Jobs\RemovePublishedPostJob;
 use App\Jobs\RemovePublishedPostsJob;
 use App\Jobs\RepublishUnpublishedLinksJob;
+use App\Jobs\VerifyFailedLinksJob;
 use App\Models\Link;
 use App\Models\Project;
 use App\Models\Site;
@@ -128,6 +129,13 @@ class LinkController extends Controller
         dispatch(new AnalyzeLinksJob($type, $status, $checkStatus));
 
         return response()->json(['message' => 'Analysis started. Report will be sent to ' . config('services.report_email') . '.']);
+    }
+
+    public function verifyFailed(): JsonResponse
+    {
+        dispatch(new VerifyFailedLinksJob());
+
+        return response()->json(['message' => 'Checking failed links for existing publications.']);
     }
 
     public function republishPosts(): JsonResponse

@@ -29,6 +29,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
     Route::post('sites/{site}/fetch-homepage-content', [SiteController::class, 'fetchHomepageContent'])->name('admin.sites.fetch_homepage_content');
     Route::resource('projects', ProjectController::class)->names('admin.projects');
     Route::post('links/analyze', [LinkController::class, 'analyze'])->name('admin.links.analyze');
+    Route::post('links/verify-failed', [LinkController::class, 'verifyFailed'])->name('admin.links.verify_failed');
     Route::get('links/export', [LinkController::class, 'export'])->name('admin.links.export');
     Route::post('links/republish-posts', [LinkController::class, 'republishPosts'])->name('admin.links.republish_posts');
     Route::post('links/republish-homepage', [LinkController::class, 'republishHomepage'])->name('admin.links.republish_homepage');
