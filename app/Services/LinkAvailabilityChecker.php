@@ -78,7 +78,10 @@ class LinkAvailabilityChecker
         return config('services.link_check_driver') === 'browserless';
     }
 
-    private function hasLink(string $body, Link $link): bool
+    // Public so a match against arbitrary fetched content (e.g. a candidate WordPress post
+    // found by title/content search) can reuse the exact same "is this link really there"
+    // criterion used for a normal availability check — not a looser substring match.
+    public function hasLink(string $body, Link $link): bool
     {
         if (!preg_match_all('/<a\s[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)<\/a>/is', $body, $matches, PREG_SET_ORDER)) {
             return false;
