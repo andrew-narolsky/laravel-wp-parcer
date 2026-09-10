@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Models\Link;
 use App\Services\LinkAvailabilityChecker;
-use App\Services\Publishers\HomepagePublisher;
 use App\Services\WordPressXmlRpcClient;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -22,7 +21,7 @@ class VerifyFailedLinkJob implements ShouldQueue
 
     public function __construct(public readonly int $linkId) {}
 
-    public function handle(HomepagePublisher $homepagePublisher, LinkAvailabilityChecker $checker): void
+    public function handle(LinkAvailabilityChecker $checker): void
     {
         if ($this->batch()?->cancelled()) {
             return;
@@ -45,7 +44,7 @@ class VerifyFailedLinkJob implements ShouldQueue
 
         try {
             $wpUrl = $link->type === 'homepage'
-                ? $this->findOnHomepage($homepagePublisher, $checker, $link)
+                ? $this->findOnHomepage($checker, $link)
                 : $this->findAsPost($checker, $link);
         } catch (Throwable $e) {
             Log::warning('VerifyFailedLinkJob: verification attempt failed', [
@@ -73,8 +72,10 @@ class VerifyFailedLinkJob implements ShouldQueue
     }
 
     // WordPress XML-RPC has no "get post by title" call — 's' is passed through to the
-    // underlying WP_Query as a best-effort narrowing, then each candidate is verified locally
-    // the same way RemovePublishedPostJob::matchesOurLink() does.
+    // underlying WP_Query as a best-effort narrowing, giving candidate permalinks. The actual
+    // presence check then happens against each candidate's real, rendered page (not the raw
+    // post_content XML-RPC returns) — a page builder like Elementor stores its layout
+    // separately and leaves post_content empty/irrelevant, so raw content can never match.
     private function findAsPost(LinkAvailabilityChecker $checker, Link $link): ?string
     {
         $site = $link->site;
@@ -84,47 +85,46 @@ class VerifyFailedLinkJob implements ShouldQueue
             $site->login,
             $site->password,
             ['post_type' => 'post', 's' => $link->title, 'number' => 20],
-            ['post_title', 'post_content', 'post_type', 'link'],
+            ['post_title', 'post_type', 'link'],
         ]);
 
         foreach ($posts as $post) {
-            if ($this->matchesOurLink($checker, $post, $link)) {
-                return $post['link'] ?? null;
+            if (($post['post_type'] ?? null) !== 'post' || ($post['post_title'] ?? null) !== $link->title) {
+                continue;
             }
+
+            $url = $post['link'] ?? null;
+
+            if (!$url || !$this->pageHasLink($checker, $url, $link)) {
+                continue;
+            }
+
+            return $url;
         }
 
         return null;
     }
 
-    private function findOnHomepage(HomepagePublisher $homepagePublisher, LinkAvailabilityChecker $checker, Link $link): ?string
+    // The homepage's URL is always known (it's the site itself) — no XML-RPC lookup needed,
+    // just check the live rendered front page the same way a normal availability check would.
+    private function findOnHomepage(LinkAvailabilityChecker $checker, Link $link): ?string
     {
         $site = $link->site;
-        $postId = $homepagePublisher->findFrontPageId($site);
 
-        $post = WordPressXmlRpcClient::call($site, 'wp.getPost', [
-            0,
-            $site->login,
-            $site->password,
-            $postId,
-            ['post_content', 'link'],
-        ]);
-
-        if (!$checker->hasLink($post['post_content'] ?? '', $link)) {
-            return null;
-        }
-
-        return $post['link'] ?? $site->url;
+        return $this->pageHasLink($checker, $site->url, $link) ? $site->url : null;
     }
 
-    // A title match alone is too weak (titles can repeat across posts) and a raw text
-    // substring match is both too weak (matches shared boilerplate around a different link)
-    // and too strict (WordPress reformats content on save, e.g. wpautop). The real signal is
-    // the same one LinkAvailabilityChecker uses for a normal check: is our specific
-    // <a href="$link->url">$link->anchor</a> actually present.
-    private function matchesOurLink(LinkAvailabilityChecker $checker, array $post, Link $link): bool
+    private function pageHasLink(LinkAvailabilityChecker $checker, string $url, Link $link): bool
     {
-        return ($post['post_type'] ?? null) === 'post'
-            && ($post['post_title'] ?? null) === $link->title
-            && $checker->hasLink($post['post_content'] ?? '', $link);
+        try {
+            $body = $checker->fetchBody($url);
+        } catch (Throwable $e) {
+            Log::warning('VerifyFailedLinkJob: could not fetch candidate page', [
+                'link_id' => $link->id, 'url' => $url, 'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+
+        return $checker->hasLink($body, $link);
     }
 }

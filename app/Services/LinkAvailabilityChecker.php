@@ -18,32 +18,18 @@ class LinkAvailabilityChecker
             return new LinkCheckResult($link, pageExists: false, hasLink: false, error: 'No published URL');
         }
 
-        if ($this->useBrowserless()) {
-            if (!$this->unblocker->isConfigured()) {
-                throw new RuntimeException('LINK_CHECK_DRIVER=browserless but BROWSERLESS_TOKEN is not set');
-            }
-
-            $body = $this->unblocker->fetch($link->wp_url);
-
-            // Unlike a plain-HTTP connection failure (a real signal the site is down), a failed
+        try {
+            $body = $this->fetchBody($link->wp_url);
+        } catch (RuntimeException $e) {
+            // Unlike a plain-HTTP failure (a real signal the site/page is down), a failed
             // Browserless call (quota exhausted, API outage, timeout) says nothing about the link
-            // itself — throwing here leaves check_status untouched instead of recording a false
+            // itself — rethrowing leaves check_status untouched instead of recording a false
             // "not_found". allowFailures() on the analysis batch means this doesn't block the rest.
-            if ($body === null) {
-                throw new RuntimeException('Browserless request failed — see logs for details');
-            }
-        } else {
-            try {
-                $response = Http::timeout(15)->get($link->wp_url);
-            } catch (ConnectionException $e) {
-                return new LinkCheckResult($link, pageExists: false, hasLink: false, error: 'Connection error: ' . $e->getMessage());
+            if ($this->useBrowserless()) {
+                throw $e;
             }
 
-            if (!$response->successful()) {
-                return new LinkCheckResult($link, pageExists: false, hasLink: false, error: "Cannot fetch page: HTTP {$response->status()}");
-            }
-
-            $body = $response->body();
+            return new LinkCheckResult($link, pageExists: false, hasLink: false, error: $e->getMessage());
         }
 
         if ($this->looksLikeBotChallenge($body)) {
@@ -76,6 +62,39 @@ class LinkAvailabilityChecker
     private function useBrowserless(): bool
     {
         return config('services.link_check_driver') === 'browserless';
+    }
+
+    // Public so callers that need to check arbitrary URLs (e.g. a candidate post found by
+    // title search, whose real URL isn't known ahead of time) get the same fetch behavior
+    // — plain HTTP or Browserless, per LINK_CHECK_DRIVER — as a normal availability check.
+    // Throws on any failure; check() decides what that means for its LinkCheckResult.
+    public function fetchBody(string $url): string
+    {
+        if ($this->useBrowserless()) {
+            if (!$this->unblocker->isConfigured()) {
+                throw new RuntimeException('LINK_CHECK_DRIVER=browserless but BROWSERLESS_TOKEN is not set');
+            }
+
+            $body = $this->unblocker->fetch($url);
+
+            if ($body === null) {
+                throw new RuntimeException('Browserless request failed — see logs for details');
+            }
+
+            return $body;
+        }
+
+        try {
+            $response = Http::timeout(15)->get($url);
+        } catch (ConnectionException $e) {
+            throw new RuntimeException('Connection error: ' . $e->getMessage());
+        }
+
+        if (!$response->successful()) {
+            throw new RuntimeException("Cannot fetch page: HTTP {$response->status()}");
+        }
+
+        return $response->body();
     }
 
     // Public so a match against arbitrary fetched content (e.g. a candidate WordPress post
