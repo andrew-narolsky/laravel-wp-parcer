@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\DTO\LinkCheckResult;
 use App\Models\Link;
 use App\Services\LinkAvailabilityChecker;
 use App\Services\WordPressXmlRpcClient;
@@ -43,9 +44,9 @@ class VerifyFailedLinkJob implements ShouldQueue
         }
 
         try {
-            $wpUrl = $link->type === 'homepage'
-                ? $this->findOnHomepage($checker, $link)
-                : $this->findAsPost($checker, $link);
+            $outcome = $link->type === 'homepage'
+                ? $this->checkHomepage($checker, $link)
+                : $this->checkAsPost($checker, $link);
         } catch (Throwable $e) {
             Log::warning('VerifyFailedLinkJob: verification attempt failed', [
                 'link_id' => $link->id, 'error' => $e->getMessage(),
@@ -53,21 +54,40 @@ class VerifyFailedLinkJob implements ShouldQueue
             return;
         }
 
-        if ($wpUrl === null) {
+        if ($outcome === null) {
             return;
         }
 
+        [$url, $result] = $outcome;
+
+        if ($result->hasLink) {
+            $link->update([
+                'status'        => 'published',
+                'wp_url'        => $url,
+                'failed_reason' => null,
+                'check_status'  => 'alive',
+                'check_error'   => null,
+                'checked_at'    => now(),
+            ]);
+
+            Log::info('VerifyFailedLinkJob: found an existing publication for a failed link', [
+                'link_id' => $link->id, 'wp_url' => $url,
+            ]);
+
+            return;
+        }
+
+        // Blocked or compromised (or, for a homepage, a definitive "not there") — we haven't
+        // confirmed our link is live, so status stays failed, but the check_status/check_error
+        // signal is real and worth keeping instead of leaving the row silently untouched.
         $link->update([
-            'status'        => 'published',
-            'wp_url'        => $wpUrl,
-            'failed_reason' => null,
-            'check_status'  => 'alive',
-            'check_error'   => null,
-            'checked_at'    => now(),
+            'check_status' => $result->status(),
+            'check_error'  => $result->failReason(),
+            'checked_at'   => now(),
         ]);
 
-        Log::info('VerifyFailedLinkJob: found an existing publication for a failed link', [
-            'link_id' => $link->id, 'wp_url' => $wpUrl,
+        Log::info('VerifyFailedLinkJob: candidate page could not confirm the link', [
+            'link_id' => $link->id, 'url' => $url, 'check_status' => $result->status(),
         ]);
     }
 
@@ -76,7 +96,9 @@ class VerifyFailedLinkJob implements ShouldQueue
     // presence check then happens against each candidate's real, rendered page (not the raw
     // post_content XML-RPC returns) — a page builder like Elementor stores its layout
     // separately and leaves post_content empty/irrelevant, so raw content can never match.
-    private function findAsPost(LinkAvailabilityChecker $checker, Link $link): ?string
+    // A blocked/compromised candidate doesn't rule out other candidates sharing the same
+    // title, so keep looking, but remember the first such result in case nothing better turns up.
+    private function checkAsPost(LinkAvailabilityChecker $checker, Link $link): ?array
     {
         $site = $link->site;
 
@@ -88,6 +110,8 @@ class VerifyFailedLinkJob implements ShouldQueue
             ['post_title', 'post_type', 'link'],
         ]);
 
+        $inconclusive = null;
+
         foreach ($posts as $post) {
             if (($post['post_type'] ?? null) !== 'post' || ($post['post_title'] ?? null) !== $link->title) {
                 continue;
@@ -95,26 +119,39 @@ class VerifyFailedLinkJob implements ShouldQueue
 
             $url = $post['link'] ?? null;
 
-            if (!$url || !$this->pageHasLink($checker, $url, $link)) {
+            if (!$url) {
                 continue;
             }
 
-            return $url;
+            $result = $this->evaluateUrl($checker, $url, $link);
+
+            if ($result === null) {
+                continue;
+            }
+
+            if ($result->hasLink) {
+                return [$url, $result];
+            }
+
+            if (($result->blocked || $result->compromised) && $inconclusive === null) {
+                $inconclusive = [$url, $result];
+            }
         }
 
-        return null;
+        return $inconclusive;
     }
 
     // The homepage's URL is always known (it's the site itself) — no XML-RPC lookup needed,
     // just check the live rendered front page the same way a normal availability check would.
-    private function findOnHomepage(LinkAvailabilityChecker $checker, Link $link): ?string
+    private function checkHomepage(LinkAvailabilityChecker $checker, Link $link): ?array
     {
         $site = $link->site;
+        $result = $this->evaluateUrl($checker, $site->url, $link);
 
-        return $this->pageHasLink($checker, $site->url, $link) ? $site->url : null;
+        return $result ? [$site->url, $result] : null;
     }
 
-    private function pageHasLink(LinkAvailabilityChecker $checker, string $url, Link $link): bool
+    private function evaluateUrl(LinkAvailabilityChecker $checker, string $url, Link $link): ?LinkCheckResult
     {
         try {
             $body = $checker->fetchBody($url);
@@ -122,9 +159,9 @@ class VerifyFailedLinkJob implements ShouldQueue
             Log::warning('VerifyFailedLinkJob: could not fetch candidate page', [
                 'link_id' => $link->id, 'url' => $url, 'error' => $e->getMessage(),
             ]);
-            return false;
+            return null;
         }
 
-        return $checker->hasLink($body, $link);
+        return $checker->evaluate($body, $link);
     }
 }

@@ -32,6 +32,15 @@ class LinkAvailabilityChecker
             return new LinkCheckResult($link, pageExists: false, hasLink: false, error: $e->getMessage());
         }
 
+        return $this->evaluate($body, $link);
+    }
+
+    // Split out of check() so a caller that already has a page body from somewhere else (e.g.
+    // a candidate post found by title search) gets the exact same bot-challenge/cloaking/link
+    // classification as a normal availability check, instead of a bare hasLink() call that
+    // can't tell "genuinely not there" apart from "couldn't verify".
+    public function evaluate(string $body, Link $link): LinkCheckResult
+    {
         if ($this->looksLikeBotChallenge($body)) {
             return new LinkCheckResult(
                 $link,
